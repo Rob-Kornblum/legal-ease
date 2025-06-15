@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ✅ New OpenAI client instance (replaces old openai.api_key approach)
+# New OpenAI client instance
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 👇 Define a request body schema
+# Define a request body schema
 class SimplifyRequest(BaseModel):
     text: str
 
