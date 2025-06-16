@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 const EXAMPLES = [
   "Notwithstanding anything to the contrary contained herein, the party of the second part shall indemnify, defend, and hold harmless the party of the first part from and against any and all claims, liabilities, losses, and expenses (including reasonable attorneys’ fees) arising out of or relating to the performance of this Agreement, except to the extent caused by the gross negligence or willful misconduct of the party of the first part.",
@@ -14,27 +14,11 @@ const EXAMPLES = [
 ];
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
-const isLocal = API_URL.includes("localhost");
 
 function App() {
-  const [backendStatus, setBackendStatus] = useState(isLocal ? "up" : "unknown");
   const [legalese, setLegalese] = useState("");
   const [plainEnglish, setPlainEnglish] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const checkBackend = async () => {
-    setBackendStatus("unknown");
-    try {
-      const res = await fetch(`${API_URL}/health`);
-      if (res.ok) {
-        setBackendStatus("up");
-      } else {
-        setBackendStatus("down");
-      }
-    } catch {
-      setBackendStatus("down");
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,9 +34,8 @@ function App() {
       setPlainEnglish(data.result || data.plain_english || "No response.");
     } catch (err) {
       setPlainEnglish(
-        "Error: Could not connect to backend. The server may be waking up. If this is your first request, please wait a few moments and try again."
+        "Error: Could not connect to backend. Please try again later."
       );
-      setBackendStatus("down");
     }
     setLoading(false);
   };
@@ -62,41 +45,8 @@ function App() {
     setLegalese(random);
   };
 
-  const statusColor =
-    backendStatus === "up"
-      ? "green"
-      : backendStatus === "down"
-      ? "red"
-      : "gray";
-  const statusText =
-    backendStatus === "up"
-      ? "Backend is UP"
-      : backendStatus === "down"
-      ? "Backend is DOWN"
-      : "Backend status unknown";
-
   return (
     <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "sans-serif" }}>
-      <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
-        <div
-          style={{
-            width: 16,
-            height: 16,
-            borderRadius: "50%",
-            background: statusColor,
-            marginRight: 8,
-            border: "1px solid #333",
-          }}
-        />
-        <span>{statusText}</span>
-        <button
-          style={{ marginLeft: 16 }}
-          onClick={checkBackend}
-          disabled={backendStatus === "up"}
-        >
-          Wake Up Server
-        </button>
-      </div>
       <h2>Legalese to Plain English</h2>
       <form onSubmit={handleSubmit}>
         <textarea
@@ -106,10 +56,9 @@ function App() {
           value={legalese}
           onChange={(e) => setLegalese(e.target.value)}
           required
-          disabled={backendStatus !== "up"}
         />
         <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
-          <button type="submit" disabled={loading || backendStatus !== "up"}>
+          <button type="submit" disabled={loading}>
             {loading ? "Translating..." : "Translate"}
           </button>
           <button type="button" onClick={handleAutoGenerate} disabled={loading}>
