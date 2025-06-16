@@ -20,10 +20,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define a request body schema
 class SimplifyRequest(BaseModel):
     text: str
 
+# Endpoint to simplify legal text
 @app.post("/simplify")
 async def simplify_text(request: SimplifyRequest):
     legal_text = request.text
@@ -40,3 +40,9 @@ async def simplify_text(request: SimplifyRequest):
     except Exception as e:
         print("❌ OpenAI Error:", str(e))
         return {"error": str(e)}, 500
+
+# Health check endpoint
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}

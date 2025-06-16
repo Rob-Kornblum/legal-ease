@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const EXAMPLES = [
   "Notwithstanding anything to the contrary contained herein, the party of the second part shall indemnify, defend, and hold harmless the party of the first part from and against any and all claims, liabilities, losses, and expenses (including reasonable attorneys’ fees) arising out of or relating to the performance of this Agreement, except to the extent caused by the gross negligence or willful misconduct of the party of the first part.",
@@ -13,17 +13,35 @@ const EXAMPLES = [
   "This Agreement constitutes the entire understanding between the parties with respect to the subject matter hereof, and supersedes all prior or contemporaneous negotiations, representations, or agreements, whether written or oral."
 ];
 
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const isLocal = API_URL.includes("localhost");
+
 function App() {
+  const [backendStatus, setBackendStatus] = useState(isLocal ? "up" : "unknown");
   const [legalese, setLegalese] = useState("");
   const [plainEnglish, setPlainEnglish] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const checkBackend = async () => {
+    setBackendStatus("unknown");
+    try {
+      const res = await fetch(`${API_URL}/health`);
+      if (res.ok) {
+        setBackendStatus("up");
+      } else {
+        setBackendStatus("down");
+      }
+    } catch {
+      setBackendStatus("down");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setPlainEnglish("");
     try {
-      const response = await fetch("http://localhost:8000/simplify", {
+      const response = await fetch(`${API_URL}/simplify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: legalese }),
@@ -31,7 +49,10 @@ function App() {
       const data = await response.json();
       setPlainEnglish(data.result || data.plain_english || "No response.");
     } catch (err) {
-      setPlainEnglish("Error: Could not connect to backend.");
+      setPlainEnglish(
+        "Error: Could not connect to backend. The server may be waking up. If this is your first request, please wait a few moments and try again."
+      );
+      setBackendStatus("down");
     }
     setLoading(false);
   };
@@ -41,8 +62,41 @@ function App() {
     setLegalese(random);
   };
 
+  const statusColor =
+    backendStatus === "up"
+      ? "green"
+      : backendStatus === "down"
+      ? "red"
+      : "gray";
+  const statusText =
+    backendStatus === "up"
+      ? "Backend is UP"
+      : backendStatus === "down"
+      ? "Backend is DOWN"
+      : "Backend status unknown";
+
   return (
     <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "sans-serif" }}>
+      <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
+        <div
+          style={{
+            width: 16,
+            height: 16,
+            borderRadius: "50%",
+            background: statusColor,
+            marginRight: 8,
+            border: "1px solid #333",
+          }}
+        />
+        <span>{statusText}</span>
+        <button
+          style={{ marginLeft: 16 }}
+          onClick={checkBackend}
+          disabled={backendStatus === "up"}
+        >
+          Wake Up Server
+        </button>
+      </div>
       <h2>Legalese to Plain English</h2>
       <form onSubmit={handleSubmit}>
         <textarea
@@ -52,9 +106,10 @@ function App() {
           value={legalese}
           onChange={(e) => setLegalese(e.target.value)}
           required
+          disabled={backendStatus !== "up"}
         />
         <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
-          <button type="submit" disabled={loading}>
+          <button type="submit" disabled={loading || backendStatus !== "up"}>
             {loading ? "Translating..." : "Translate"}
           </button>
           <button type="button" onClick={handleAutoGenerate} disabled={loading}>
