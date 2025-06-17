@@ -1,6 +1,10 @@
 # legal-ease
 An AI-powered tool for translating legalese into plain English. Built for legal professionals, developers, and the legally curious.
 
+## Live Demo
+
+[Try Legal Ease here!](https://legal-ease-welcome.onrender.com/)
+
 ![Example: Legalese to Plain English](./frontend/public/example.png)
 
 ## Prerequisites

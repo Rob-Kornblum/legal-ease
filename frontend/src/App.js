@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Footer from "./Footer";
 
 const EXAMPLES = [
   "Notwithstanding anything to the contrary contained herein, the party of the second part shall indemnify, defend, and hold harmless the party of the first part from and against any and all claims, liabilities, losses, and expenses (including reasonable attorneys’ fees) arising out of or relating to the performance of this Agreement, except to the extent caused by the gross negligence or willful misconduct of the party of the first part.",
@@ -72,6 +73,7 @@ function App() {
           <div>{plainEnglish}</div>
         </div>
       )}
+      <Footer />
     </div>
   );
 }
