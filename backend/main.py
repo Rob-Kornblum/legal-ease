@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
+from jinja2 import Environment, FileSystemLoader
 import os
 from dotenv import load_dotenv
 
@@ -25,6 +26,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+prompt_env = Environment(loader=FileSystemLoader("prompts"))
+
 class SimplifyRequest(BaseModel):
     text: str
 
@@ -32,12 +35,13 @@ class SimplifyRequest(BaseModel):
 @app.post("/simplify")
 async def simplify_text(request: SimplifyRequest):
     legal_text = request.text
+    system_prompt = prompt_env.get_template("legal_assistant.txt").render()
 
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful legal assistant who rewrites complex legal language into plain English."},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": legal_text}
             ]
         )
