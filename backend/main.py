@@ -5,6 +5,13 @@ from openai import OpenAI
 from jinja2 import Environment, FileSystemLoader
 import os
 from dotenv import load_dotenv
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -35,7 +42,9 @@ class SimplifyRequest(BaseModel):
 @app.post("/simplify")
 async def simplify_text(request: SimplifyRequest):
     legal_text = request.text
-    system_prompt = prompt_env.get_template("legal_assistant.txt").render()
+    system_prompt = prompt_env.get_template("legal_assistant_v2.txt").render()
+
+    logger.info(f"Received request: {legal_text!r}")
 
     try:
         response = client.chat.completions.create(
@@ -45,9 +54,11 @@ async def simplify_text(request: SimplifyRequest):
                 {"role": "user", "content": legal_text}
             ]
         )
-        return {"result": response.choices[0].message.content}
+        llm_output = response.choices[0].message.content
+        logger.info(f"LLM response: {llm_output!r}")
+        return {"result": llm_output}
     except Exception as e:
-        print("❌ OpenAI Error:", str(e))
+        logger.error(f"OpenAI Error: {str(e)}")
         return {"error": str(e)}, 500
 
 # Health check endpoint
