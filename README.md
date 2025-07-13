@@ -29,7 +29,7 @@ An AI-powered tool for translating legalese into plain English. Built for legal 
 
 3. **Install Python dependencies:**
    ```bash
-   pip install fastapi python-dotenv uvicorn openai pydantic
+   pip install -r backend/requirements.txt
    ```
 
 4. **Set your OpenAI API key as an environment variable by creating a .env file in the backend directory:**
@@ -73,3 +73,12 @@ The "Auto-Generate Example" button helps you quickly test the app with realistic
 
 - If you see CORS errors, ensure the backend has CORS middleware enabled for `http://localhost:3000`.
 - Make sure both backend and frontend servers are running.
+
+## Category Eval (optional)
+
+1. Make sure your backend server is running.
+2. Run the eval script:
+   ```bash
+   python backend/category_eval.py
+   ```
+   This will test the model’s ability to categorize legalese and print accuracy results.

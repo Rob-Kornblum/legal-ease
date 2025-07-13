@@ -1,0 +1,13 @@
+samples:
+  - input: "I hereby bequeath all my personal property to my children, to be divided equally among them."
+    expected_category: "Wills, Trusts, and Estates"
+  - input: "Any evidence obtained in violation of the Fourth Amendment shall be inadmissible in a criminal prosecution."
+    expected_category: "Criminal Procedure"
+  - input: "The buyer shall obtain title insurance at their own expense and the seller shall deliver a warranty deed at closing."
+    expected_category: "Real Estate"
+  - input: "The employee may not be terminated without cause during the initial probationary period."
+    expected_category: "Employment Law"
+  - input: "The custodial parent shall have the right to make decisions regarding the child's education, health care, and religious upbringing."
+    expected_category: "Family Law"
+  - input: "The plaintiff seeks damages for injuries sustained in a car accident caused by the defendant's negligence."
+    expected_category: "Personal Injury"

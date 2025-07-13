@@ -6,6 +6,7 @@ from jinja2 import Environment, FileSystemLoader
 import os
 from dotenv import load_dotenv
 import logging
+import json
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,7 +43,7 @@ class SimplifyRequest(BaseModel):
 @app.post("/simplify")
 async def simplify_text(request: SimplifyRequest):
     legal_text = request.text
-    system_prompt = prompt_env.get_template("legal_assistant_v2.txt").render()
+    system_prompt = prompt_env.get_template("legal_assistant_v4.txt").render()
 
     logger.info(f"Received request: {legal_text!r}")
 
@@ -56,7 +57,20 @@ async def simplify_text(request: SimplifyRequest):
         )
         llm_output = response.choices[0].message.content
         logger.info(f"LLM response: {llm_output!r}")
-        return {"result": llm_output}
+        # Try to parse the output as JSON
+        try:
+            parsed = json.loads(llm_output)
+            return {
+                "response": parsed.get("response", ""),
+                "category": parsed.get("category", "")
+            }
+        except Exception as parse_err:
+            logger.error(f"Parse Error: {str(parse_err)}")
+            # Fallback: treat the whole output as plain English, no category
+            return {
+                "response": llm_output,
+                "category": ""
+            }
     except Exception as e:
         logger.error(f"OpenAI Error: {str(e)}")
         return {"error": str(e)}, 500

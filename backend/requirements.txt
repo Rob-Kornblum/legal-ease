@@ -5,3 +5,5 @@ openai
 dotenv
 pydantic
 jinja2
+requests
+pyyaml
