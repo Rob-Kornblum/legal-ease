@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
 from pydantic import BaseModel
 from openai import OpenAI
 from jinja2 import Environment, FileSystemLoader
@@ -73,7 +74,7 @@ async def simplify_text(request: SimplifyRequest):
             }
     except Exception as e:
         logger.error(f"OpenAI Error: {str(e)}")
-        return {"error": str(e)}, 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Health check endpoint
 

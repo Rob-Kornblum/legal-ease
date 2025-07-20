@@ -82,3 +82,24 @@ The "Auto-Generate Example" button helps you quickly test the app with realistic
    python backend/category_eval.py
    ```
    This will test the model’s ability to categorize legalese and print accuracy results.
+
+## Running Tests Locally
+
+1. **Ensure your virtual environment is activated** (see Backend Setup above).
+
+2. **Install all dependencies** (if you haven’t already):
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
+
+3. **Run the test suite from the backend directory:**
+   ```bash
+   pytest
+   ```
+
+4. **(Optional) View detailed output:**
+   ```bash
+   pytest -v
+   ```
+
+If you add or modify tests, simply re-run `pytest` to check your changes.
