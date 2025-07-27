@@ -30,14 +30,18 @@ def test_simplify_nonlegal():
     assert data["category"] == "Other"
 
 def test_simplify_malformed_json(monkeypatch, caplog):
-    class FakeResponse:
-        class Choices:
-            def __init__(self):
-                self.message = type("msg", (), {"content": "not a json"})
-        choices = [Choices()]
+    class FakeFunctionCall:
+        arguments = "not a json"
+
+    class FakeMessage:
+        function_call = FakeFunctionCall()
+
+    class FakeChoices:
+        def __init__(self):
+            self.message = FakeMessage()
     fake_client = MagicMock()
-    fake_client.chat.completions.create.return_value = FakeResponse()
-    
+    fake_client.chat.completions.create.return_value = type("FakeResponse", (), {"choices": [FakeChoices()]})()
+
     with patch("main.client", fake_client):
         payload = {"text": "Some legalese"}
         with caplog.at_level("ERROR"):

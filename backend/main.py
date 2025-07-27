@@ -9,6 +9,27 @@ from dotenv import load_dotenv
 import logging
 import json
 
+functions = [
+    {
+        "name": "classify_legal_area",
+        "description": "Classifies the legal area and translates legal language into plain English.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "description": "The legal area, e.g., Contract, Real Estate, Personal Injury, Family Law, etc."
+                },
+                "plain_english": {
+                    "type": "string",
+                    "description": "The plain English translation of the legal text."
+                }
+            },
+            "required": ["category", "plain_english"]
+        }
+    }
+]
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s"
@@ -17,7 +38,6 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# New OpenAI client instance
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
@@ -40,7 +60,6 @@ prompt_env = Environment(loader=FileSystemLoader("prompts"))
 class SimplifyRequest(BaseModel):
     text: str
 
-# Endpoint to simplify legal text
 @app.post("/simplify")
 async def simplify_text(request: SimplifyRequest):
     legal_text = request.text
@@ -50,26 +69,25 @@ async def simplify_text(request: SimplifyRequest):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4-0613",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": legal_text}
-            ]
+            ],
+            functions=functions,
+            function_call={"name": "classify_legal_area"}
         )
-        llm_output = response.choices[0].message.content
-        logger.info(f"LLM response: {llm_output!r}")
-        # Try to parse the output as JSON
+        args = response.choices[0].message.function_call.arguments
         try:
-            parsed = json.loads(llm_output)
+            parsed = json.loads(args)
             return {
-                "response": parsed.get("response", ""),
+                "response": parsed.get("plain_english", ""),
                 "category": parsed.get("category", "")
             }
         except Exception as parse_err:
             logger.error(f"Parse Error: {str(parse_err)}")
-            # Fallback: treat the whole output as plain English, no category
             return {
-                "response": llm_output,
+                "response": args,
                 "category": ""
             }
     except Exception as e:
