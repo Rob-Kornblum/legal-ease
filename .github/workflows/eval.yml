@@ -27,6 +27,17 @@ jobs:
       run: |
         cd backend
         echo "Waiting for Render deployment to complete..."
+        
+        # First, let's debug what URLs we're trying to reach
+        echo "Testing URL: https://legal-ease-hxku.onrender.com"
+        echo "Checking health endpoint..."
+        
+        # Try a simple curl test first
+        curl -v https://legal-ease-hxku.onrender.com/health || echo "Direct curl failed"
+        
+        # Check if the base URL responds
+        curl -v https://legal-ease-hxku.onrender.com || echo "Base URL curl failed"
+        
         # Wait up to 5 minutes for Render deployment
         python -c "
         import requests
@@ -34,7 +45,7 @@ jobs:
         import sys
         import os
         
-        base_url = 'https://legal-ease-welcome.onrender.com'
+        base_url = 'https://legal-ease-hxku.onrender.com'
         max_wait = 300  # 5 minutes
         check_interval = 15  # Check every 15 seconds
         
@@ -43,18 +54,27 @@ jobs:
         
         for i in range(0, max_wait, check_interval):
             try:
+                print(f'Trying {base_url}/health...')
                 response = requests.get(f'{base_url}/health', timeout=10)
+                print(f'Response status: {response.status_code}')
+                print(f'Response text: {response.text[:200]}')
                 if response.status_code == 200:
                     print(f'✅ Server is ready after {i} seconds!')
                     break
             except Exception as e:
-                pass
+                print(f'Request failed: {e}')
             
             if i + check_interval < max_wait:
                 print(f'Still waiting... ({i + check_interval}s/{max_wait}s)')
                 time.sleep(check_interval)
         else:
             print(f'❌ Server not ready after {max_wait} seconds')
+            print('Trying one more manual check...')
+            try:
+                resp = requests.get(f'{base_url}', timeout=30)
+                print(f'Base URL response: {resp.status_code} - {resp.text[:200]}')
+            except Exception as e:
+                print(f'Base URL also failed: {e}')
             sys.exit(1)
         "
         
@@ -62,7 +82,7 @@ jobs:
         python enhanced_eval.py
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        API_URL: https://legal-ease-welcome.onrender.com
+        API_URL: https://legal-ease-hxku.onrender.com
         
     - name: Check minimum performance
       run: |
