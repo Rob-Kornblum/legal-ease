@@ -23,9 +23,42 @@ jobs:
         cd backend
         pip install -r requirements.txt
         
-    - name: Run evaluation against production server
+    - name: Wait for Render deployment and run evaluation
       run: |
         cd backend
+        echo "Waiting for Render deployment to complete..."
+        # Wait up to 5 minutes for Render deployment
+        python -c "
+        import requests
+        import time
+        import sys
+        import os
+        
+        base_url = 'https://legal-ease-welcome.onrender.com'
+        max_wait = 300  # 5 minutes
+        check_interval = 15  # Check every 15 seconds
+        
+        print(f'Waiting for server at {base_url} to be ready...')
+        print('This may take 1-2 minutes for Render deployment to complete.')
+        
+        for i in range(0, max_wait, check_interval):
+            try:
+                response = requests.get(f'{base_url}/health', timeout=10)
+                if response.status_code == 200:
+                    print(f'✅ Server is ready after {i} seconds!')
+                    break
+            except Exception as e:
+                pass
+            
+            if i + check_interval < max_wait:
+                print(f'Still waiting... ({i + check_interval}s/{max_wait}s)')
+                time.sleep(check_interval)
+        else:
+            print(f'❌ Server not ready after {max_wait} seconds')
+            sys.exit(1)
+        "
+        
+        # Now run the evaluation
         python enhanced_eval.py
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

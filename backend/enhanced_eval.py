@@ -12,27 +12,37 @@ load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000") + "/simplify"
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def wait_for_server(max_retries=30, delay=1):
+def wait_for_server(max_retries=None, delay=1):
     """Wait for the server to be ready"""
     base_url = os.getenv("API_URL", "http://localhost:8000")
     health_url = base_url + "/health"
+    
+    if max_retries is None:
+        if "localhost" in base_url:
+            max_retries = 30
+        else:
+            max_retries = 180
+            delay = 2
 
     print(f"Checking if server is ready at {base_url}...")
+    if "onrender.com" in base_url:
+        print("Note: Render deployments can take 1-2 minutes...")
 
     for i in range(max_retries):
         try:
             response = requests.get(health_url, timeout=10)
             if response.status_code == 200:
-                print("✅ Server is ready!")
+                print(f"✅ Server is ready after {i * delay} seconds!")
                 return True
         except requests.exceptions.RequestException:
             pass
         
         if i < max_retries - 1:
-            print(f"Waiting for server... ({i+1}/{max_retries})")
+            if i % 10 == 0:
+                print(f"Still waiting... ({(i+1) * delay}s/{max_retries * delay}s)")
             time.sleep(delay)
     
-    print(f"❌ Server not responding after {max_retries} seconds")
+    print(f"❌ Server not responding after {max_retries * delay} seconds")
     return False
 
 def load_samples(path):
