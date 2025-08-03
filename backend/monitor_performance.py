@@ -8,13 +8,17 @@ import datetime
 from pathlib import Path
 import subprocess
 import sys
+import os
 
 def run_evaluation():
     """Run the enhanced evaluation and return results"""
     try:
+        # Pass environment variables to the subprocess
+        env = os.environ.copy()
+        
         result = subprocess.run([
             sys.executable, "enhanced_eval.py"
-        ], capture_output=True, text=True, cwd="backend")
+        ], capture_output=True, text=True, env=env)
         
         if result.returncode != 0:
             print(f"Evaluation failed: {result.stderr}")

@@ -4,11 +4,36 @@ import json
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+import time
+import sys
 
 load_dotenv()
 
-API_URL = "http://localhost:8000/simplify"
+API_URL = os.getenv("API_URL", "http://localhost:8000") + "/simplify"
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+def wait_for_server(max_retries=30, delay=1):
+    """Wait for the server to be ready"""
+    base_url = os.getenv("API_URL", "http://localhost:8000")
+    health_url = base_url + "/health"
+
+    print(f"Checking if server is ready at {base_url}...")
+
+    for i in range(max_retries):
+        try:
+            response = requests.get(health_url, timeout=10)
+            if response.status_code == 200:
+                print("✅ Server is ready!")
+                return True
+        except requests.exceptions.RequestException:
+            pass
+        
+        if i < max_retries - 1:
+            print(f"Waiting for server... ({i+1}/{max_retries})")
+            time.sleep(delay)
+    
+    print(f"❌ Server not responding after {max_retries} seconds")
+    return False
 
 def load_samples(path):
     with open(path, "r") as f:
@@ -55,12 +80,17 @@ def run_comprehensive_eval(samples):
         print(f"[{i}/{len(samples)}] Testing: {sample['input'][:50]}...")
         
         try:
-            response = requests.post(API_URL, json={"text": sample["input"]})
+            response = requests.post(API_URL, json={"text": sample["input"]}, timeout=10)
+            response.raise_for_status()
             data = response.json()
             predicted_category = data.get("category", "").strip()
             translation = data.get("response", "").strip()
-        except Exception as e:
+        except requests.exceptions.RequestException as e:
             print(f"  ❌ API Error: {e}")
+            print(f"     Server may not be running or accessible")
+            sys.exit(1)
+        except Exception as e:
+            print(f"  ❌ Unexpected Error: {e}")
             continue
         
         expected_category = sample["expected_category"].strip()
@@ -115,5 +145,14 @@ def run_comprehensive_eval(samples):
     return results
 
 if __name__ == "__main__":
+    if not wait_for_server():
+        base_url = os.getenv("API_URL", "http://localhost:8000")
+        print(f"❌ Cannot connect to backend server at {base_url}")
+        if "localhost" in base_url:
+            print("Make sure the server is running with: uvicorn main:app --reload --port 8000")
+        else:
+            print("Check that the production server is accessible and running")
+        sys.exit(1)
+    
     samples = load_samples("category_eval_samples.yaml")
     results = run_comprehensive_eval(samples)
