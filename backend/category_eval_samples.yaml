@@ -1,13 +1,62 @@
 samples:
+  # Contract Law
   - input: "I hereby bequeath all my personal property to my children, to be divided equally among them."
     expected_category: "Wills, Trusts, and Estates"
+  - input: "The party of the first part shall indemnify and hold harmless the party of the second part."
+    expected_category: "Contract"
+  - input: "Time is of the essence in the performance of all obligations under this Agreement."
+    expected_category: "Contract"
+  - input: "This Agreement shall be binding upon the heirs, successors, and assigns of the parties."
+    expected_category: "Contract"
+  
+  # Criminal Procedure
   - input: "Any evidence obtained in violation of the Fourth Amendment shall be inadmissible in a criminal prosecution."
     expected_category: "Criminal Procedure"
+  - input: "The defendant has the right to remain silent and to have an attorney present during questioning."
+    expected_category: "Criminal Procedure"
+  - input: "Probable cause must exist before a search warrant may be issued."
+    expected_category: "Criminal Procedure"
+  
+  # Real Estate
   - input: "The buyer shall obtain title insurance at their own expense and the seller shall deliver a warranty deed at closing."
     expected_category: "Real Estate"
+  - input: "The grantor hereby conveys to the grantee all right, title, and interest in the above-described property."
+    expected_category: "Real Estate"
+  - input: "Subject property is sold 'as is' with all faults, latent and patent."
+    expected_category: "Real Estate"
+  
+  # Employment Law
   - input: "The employee may not be terminated without cause during the initial probationary period."
     expected_category: "Employment Law"
+  - input: "Employee agrees not to disclose any confidential or proprietary information during or after employment."
+    expected_category: "Employment Law"
+  - input: "Employer shall provide thirty (30) days written notice prior to any reduction in force."
+    expected_category: "Employment Law"
+  
+  # Family Law
   - input: "The custodial parent shall have the right to make decisions regarding the child's education, health care, and religious upbringing."
     expected_category: "Family Law"
+  - input: "Child support payments shall be made in the amount of $500 per month, due on the first of each month."
+    expected_category: "Family Law"
+  - input: "The parties agree to joint legal custody with primary physical custody to the mother."
+    expected_category: "Family Law"
+  
+  # Personal Injury
   - input: "The plaintiff seeks damages for injuries sustained in a car accident caused by the defendant's negligence."
     expected_category: "Personal Injury"
+  - input: "Defendant breached the duty of care owed to plaintiff, resulting in compensable damages."
+    expected_category: "Personal Injury"
+  
+  # Wills, Trusts, and Estates
+  - input: "Upon my death, the trustee shall distribute the remaining assets of the trust to my grandchildren."
+    expected_category: "Wills, Trusts, and Estates"
+  - input: "I revoke all prior wills and codicils made by me and declare this to be my last will and testament."
+    expected_category: "Wills, Trusts, and Estates"
+  
+  # Non-legal (Other)
+  - input: "I love movies and going to the cinema."
+    expected_category: "Other"
+  - input: "The weather is really nice today."
+    expected_category: "Other"
+  - input: "Can you help me with my homework?"
+    expected_category: "Other"

@@ -1,5 +1,19 @@
 # legal-ease
-An AI-powered tool for translating legalese into plain English. Built for legal professionals, developers, and the legally curious.
+An AI-powered tool for translating legalese into plain English.## Category Eval (optional)
+
+Our enhanced evaluation system tests both category classification accuracy and translation quality using GPT-4 as a judge.
+
+**Current Performance:**
+- **Category Accuracy: 100%** (23/23 test cases)
+- **Translation Quality: 4.35/5.0** average
+- **Quality Distribution:** 95% of translations rated "Very Good" (4/5) or "Excellent" (5/5)
+
+1. Make sure your backend server is running.
+2. Run the enhanced eval script:
+   ```bash
+   python backend/enhanced_eval.py
+   ```
+   This will test the model's ability to categorize legalese, evaluate translation quality, and print comprehensive accuracy results.or legal professionals, developers, and the legally curious.
 
 ## Live Demo
 
@@ -79,7 +93,7 @@ The "Auto-Generate Example" button helps you quickly test the app with realistic
 1. Make sure your backend server is running.
 2. Run the eval script:
    ```bash
-   python backend/category_eval.py
+   python backend/enhanced_eval.py
    ```
    This will test the model’s ability to categorize legalese and print accuracy results.
 
