@@ -92,11 +92,13 @@ jobs:
         import sys
         import json
         import subprocess
+        import os
         
-        # Run the evaluation and capture results
+        # Run the evaluation and capture results with environment variables
+        env = os.environ.copy()
         try:
             result = subprocess.run(['python', 'enhanced_eval.py'], 
-                                  capture_output=True, text=True, check=True)
+                                  capture_output=True, text=True, check=True, env=env)
             output = result.stdout
             
             # Parse accuracy from output
@@ -125,3 +127,6 @@ jobs:
             print(f'stderr: {e.stderr}')
             sys.exit(1)
         "
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        API_URL: https://legal-ease-hxku.onrender.com
