@@ -35,37 +35,37 @@ jobs:
           echo "Checking health endpoint..."
           
           # Wait for server to be ready
-          python3 -c "
-import requests
-import time
-import sys
-import os
-
-base_url = os.environ.get('API_URL', 'https://legal-ease-hxku.onrender.com')
-max_wait = 300
-interval = 15
-
-print(f'Waiting for server at {base_url} to be ready...')
-print('This may take 1-2 minutes for Render deployment to complete.')
-
-for waited in range(0, max_wait + 1, interval):
-    try:
-        print(f'Trying {base_url}/health...')
-        response = requests.get(f'{base_url}/health', timeout=10)
-        print(f'Response status: {response.status_code}')
-        if response.status_code == 200:
-            print(f'✅ Server is ready after {waited} seconds!')
-            break
-    except Exception as e:
-        print(f'Request failed: {e}')
-    
-    if waited + interval <= max_wait:
-        print(f'Still waiting... ({waited + interval}s/{max_wait}s)')
-        time.sleep(interval)
-else:
-    print(f'❌ Server not ready after {max_wait} seconds')
-    sys.exit(1)
-"
+          python3 <<EOF
+          import requests
+          import time
+          import sys
+          import os
+          
+          base_url = os.environ.get('API_URL', 'https://legal-ease-hxku.onrender.com')
+          max_wait = 300
+          interval = 15
+          
+          print(f'Waiting for server at {base_url} to be ready...')
+          print('This may take 1-2 minutes for Render deployment to complete.')
+          
+          for waited in range(0, max_wait + 1, interval):
+              try:
+                  print(f'Trying {base_url}/health...')
+                  response = requests.get(f'{base_url}/health', timeout=10)
+                  print(f'Response status: {response.status_code}')
+                  if response.status_code == 200:
+                      print(f'✅ Server is ready after {waited} seconds!')
+                      break
+              except Exception as e:
+                  print(f'Request failed: {e}')
+              
+              if waited + interval <= max_wait:
+                  print(f'Still waiting... ({waited + interval}s/{max_wait}s)')
+                  time.sleep(interval)
+          else:
+              print(f'❌ Server not ready after {max_wait} seconds')
+              sys.exit(1)
+          EOF
           
           # Run the evaluation
           python3 enhanced_eval.py
@@ -77,26 +77,26 @@ else:
           EVAL_MODEL: gpt-4
         run: |
           cd backend
-          python3 -c "
-import json
-import sys
-
-min_accuracy = 0.90
-path = 'enhanced_eval_results.json'
-
-try:
-    with open(path, 'r') as f:
-        data = json.load(f)
-    summary = data.get('summary', {})
-    accuracy = float(summary.get('accuracy', 0.0))
-    print(f'Loaded accuracy {accuracy:.1%} from {path}')
-except Exception as e:
-    print(f'Failed to read {path}: {e}')
-    sys.exit(1)
-
-if accuracy < min_accuracy:
-    print(f'❌ Performance below threshold {min_accuracy:.1%}')
-    sys.exit(1)
-
-print('✅ Performance meets requirements')
-"
+          python3 <<EOF
+          import json
+          import sys
+          
+          min_accuracy = 0.90
+          path = 'enhanced_eval_results.json'
+          
+          try:
+              with open(path, 'r') as f:
+                  data = json.load(f)
+              summary = data.get('summary', {})
+              accuracy = float(summary.get('accuracy', 0.0))
+              print(f'Loaded accuracy {accuracy:.1%} from {path}')
+          except Exception as e:
+              print(f'Failed to read {path}: {e}')
+              sys.exit(1)
+          
+          if accuracy < min_accuracy:
+              print(f'❌ Performance below threshold {min_accuracy:.1%}')
+              sys.exit(1)
+          
+          print('✅ Performance meets requirements')
+          EOF
