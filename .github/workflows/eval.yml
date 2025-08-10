@@ -22,7 +22,7 @@ jobs:
       run: |
         cd backend
         pip install -r requirements.txt
-        
+
     - name: Wait for Render deployment and run evaluation
       run: |
         cd backend
@@ -79,54 +79,35 @@ jobs:
         "
         
         # Now run the evaluation
-        python enhanced_eval.py
+  python enhanced_eval.py
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         API_URL: https://legal-ease-hxku.onrender.com
+  EVAL_MODEL: gpt-4
+  EVAL_RESULTS_PATH: enhanced_eval_results.json
         
-    - name: Check minimum performance
-      run: |
-        cd backend
-        python -c "
-        import yaml
-        import sys
-        import json
-        import subprocess
-        import os
-        
-        # Run the evaluation and capture results with environment variables
-        env = os.environ.copy()
-        try:
-            result = subprocess.run(['python', 'enhanced_eval.py'], 
-                                  capture_output=True, text=True, check=True, env=env)
-            output = result.stdout
-            
-            # Parse accuracy from output
-            for line in output.split('\n'):
-                if 'Category Accuracy:' in line:
-                    parts = line.split(':')[-1].strip()
-                    correct, total = parts.split(' ')[0].split('/')
-                    accuracy = float(correct) / float(total)
-                    break
-            else:
-                print('Could not parse accuracy from output')
-                sys.exit(1)
-            
-            min_accuracy = 0.90
-            print(f'Accuracy: {accuracy:.1%}, Required: {min_accuracy:.1%}')
-            
-            if accuracy < min_accuracy:
-                print(f'❌ Performance below threshold!')
-                sys.exit(1)
-            else:
-                print(f'✅ Performance meets requirements!')
-                
-        except subprocess.CalledProcessError as e:
-            print(f'❌ Evaluation script failed: {e}')
-            print(f'stdout: {e.stdout}')
-            print(f'stderr: {e.stderr}')
-            sys.exit(1)
-        "
-      env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        API_URL: https://legal-ease-hxku.onrender.com
+  - name: Check minimum performance
+    run: |
+    cd backend
+    python - <<'PYCODE'
+import json, sys
+min_accuracy = 0.90
+path = 'enhanced_eval_results.json'
+try:
+  with open(path) as f:
+    data = json.load(f)
+  summary = data.get('summary', {})
+  accuracy = float(summary.get('accuracy', 0.0))
+  print(f"Loaded accuracy {accuracy:.1%} from {path}")
+except Exception as e:
+  print(f"Failed to read {path}: {e}")
+  sys.exit(1)
+if accuracy < min_accuracy:
+  print(f"❌ Performance below threshold {min_accuracy:.1%}")
+  sys.exit(1)
+print("✅ Performance meets requirements")
+PYCODE
+    env:
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    API_URL: https://legal-ease-hxku.onrender.com
+    EVAL_MODEL: gpt-4
