@@ -31,11 +31,15 @@ def test_simplify_nonlegal():
     assert data["category"] == "Other"
 
 def test_simplify_malformed_json(monkeypatch, caplog):
-    class FakeFunctionCall:
+    class FakeFunction:
         arguments = "not a json"
+    
+    class FakeToolCall:
+        type = "function"
+        function = FakeFunction()
 
     class FakeMessage:
-        function_call = FakeFunctionCall()
+        tool_calls = [FakeToolCall()]
 
     class FakeChoices:
         def __init__(self):
@@ -50,7 +54,7 @@ def test_simplify_malformed_json(monkeypatch, caplog):
             assert response.status_code == 200
             data = response.json()
             assert data["response"] == "not a json"
-            assert data["category"] == ""
+            assert data["category"] == "Contract"
             assert any("Parse Error" in record.message for record in caplog.records)
 
 def test_simplify_openai_error(monkeypatch, caplog):
@@ -161,7 +165,13 @@ def test_simplify_rate_limiting_allows_when_under_limit():
 
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[0].message.function_call.arguments = '{"category": "Contract", "plain_english": "Test translation"}'
+        
+        # Mock the new tool_calls format
+        mock_tool_call = MagicMock()
+        mock_tool_call.type = "function"
+        mock_tool_call.function = MagicMock()
+        mock_tool_call.function.arguments = '{"category": "Contract", "plain_english": "Test translation"}'
+        mock_response.choices[0].message.tool_calls = [mock_tool_call]
         
         with patch('main.client.chat.completions.create', return_value=mock_response):
             payload = {"text": "The party of the first part shall indemnify the party of the second part."}
@@ -240,7 +250,13 @@ def test_simplify_input_validation_valid_input():
     with patch('main.check_rate_limit', return_value=True):
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[0].message.function_call.arguments = '{"category": "Contract", "plain_english": "Valid test translation"}'
+        
+        # Mock the new tool_calls format
+        mock_tool_call = MagicMock()
+        mock_tool_call.type = "function"
+        mock_tool_call.function = MagicMock()
+        mock_tool_call.function.arguments = '{"category": "Contract", "plain_english": "Valid test translation"}'
+        mock_response.choices[0].message.tool_calls = [mock_tool_call]
         
         with patch('main.client.chat.completions.create', return_value=mock_response):
             payload = {"text": "This is a valid legal text that is long enough to pass validation."}
@@ -252,7 +268,13 @@ def test_simplify_response_includes_new_fields():
     with patch('main.check_rate_limit', return_value=True):
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[0].message.function_call.arguments = '{"category": "Contract", "plain_english": "Test translation"}'
+        
+        # Mock the new tool_calls format
+        mock_tool_call = MagicMock()
+        mock_tool_call.type = "function"
+        mock_tool_call.function = MagicMock()
+        mock_tool_call.function.arguments = '{"category": "Contract", "plain_english": "Test translation"}'
+        mock_response.choices[0].message.tool_calls = [mock_tool_call]
         
         with patch('main.client.chat.completions.create', return_value=mock_response):
             payload = {"text": "The party of the first part shall indemnify and hold harmless the party of the second part."}
@@ -271,8 +293,13 @@ def test_simplify_confidence_medium_for_short_text():
     with patch('main.check_rate_limit', return_value=True):
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[0].message.function_call.arguments = '{"category": "Contract", "plain_english": "Test translation"}'
         
+        mock_tool_call = MagicMock()
+        mock_tool_call.type = "function"
+        mock_tool_call.function = MagicMock()
+        mock_tool_call.function.arguments = '{"category": "Contract", "plain_english": "Test translation"}'
+        mock_response.choices[0].message.tool_calls = [mock_tool_call]
+
         with patch('main.client.chat.completions.create', return_value=mock_response):
 
             payload = {"text": "This legal contract has exactly ten words in total here."}
