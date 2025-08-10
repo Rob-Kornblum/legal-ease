@@ -9,105 +9,94 @@ on:
 jobs:
   evaluate:
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.9'
-        
-    - name: Install dependencies
-      run: |
-        cd backend
-        pip install -r requirements.txt
+      - uses: actions/checkout@v3
 
-    - name: Wait for Render deployment and run evaluation
-      run: |
-        cd backend
-        echo "Waiting for Render deployment to complete..."
-        
-        # First, let's debug what URLs we're trying to reach
-        echo "Testing URL: https://legal-ease-hxku.onrender.com"
-        echo "Checking health endpoint..."
-        
-        # Try a simple curl test first
-        curl -v https://legal-ease-hxku.onrender.com/health || echo "Direct curl failed"
-        
-        # Check if the base URL responds
-        curl -v https://legal-ease-hxku.onrender.com || echo "Base URL curl failed"
-        
-        # Wait up to 5 minutes for Render deployment
-        python -c "
-        import requests
-        import time
-        import sys
-        import os
-        
-        base_url = 'https://legal-ease-hxku.onrender.com'
-        max_wait = 300  # 5 minutes
-        check_interval = 15  # Check every 15 seconds
-        
-        print(f'Waiting for server at {base_url} to be ready...')
-        print('This may take 1-2 minutes for Render deployment to complete.')
-        
-        for i in range(0, max_wait, check_interval):
-            try:
-                print(f'Trying {base_url}/health...')
-                response = requests.get(f'{base_url}/health', timeout=10)
-                print(f'Response status: {response.status_code}')
-                print(f'Response text: {response.text[:200]}')
-                if response.status_code == 200:
-                    print(f'✅ Server is ready after {i} seconds!')
-                    break
-            except Exception as e:
-                print(f'Request failed: {e}')
-            
-            if i + check_interval < max_wait:
-                print(f'Still waiting... ({i + check_interval}s/{max_wait}s)')
-                time.sleep(check_interval)
-        else:
-            print(f'❌ Server not ready after {max_wait} seconds')
-            print('Trying one more manual check...')
-            try:
-                resp = requests.get(f'{base_url}', timeout=30)
-                print(f'Base URL response: {resp.status_code} - {resp.text[:200]}')
-            except Exception as e:
-                print(f'Base URL also failed: {e}')
-            sys.exit(1)
-        "
-        
-        # Now run the evaluation
-  python enhanced_eval.py
-      env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        API_URL: https://legal-ease-hxku.onrender.com
-  EVAL_MODEL: gpt-4
-  EVAL_RESULTS_PATH: enhanced_eval_results.json
-        
-  - name: Check minimum performance
-    run: |
-    cd backend
-    python - <<'PYCODE'
-import json, sys
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Wait for Render deployment and run evaluation
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          API_URL: https://legal-ease-hxku.onrender.com
+          EVAL_MODEL: gpt-4
+          EVAL_RESULTS_PATH: enhanced_eval_results.json
+        run: |
+          cd backend
+          echo "Waiting for Render deployment to complete..."
+          echo "Testing URL: $API_URL"
+          echo "Checking health endpoint..."
+          
+          # Wait for server to be ready
+          python3 -c "
+import requests
+import time
+import sys
+import os
+
+base_url = os.environ.get('API_URL', 'https://legal-ease-hxku.onrender.com')
+max_wait = 300
+interval = 15
+
+print(f'Waiting for server at {base_url} to be ready...')
+print('This may take 1-2 minutes for Render deployment to complete.')
+
+for waited in range(0, max_wait + 1, interval):
+    try:
+        print(f'Trying {base_url}/health...')
+        response = requests.get(f'{base_url}/health', timeout=10)
+        print(f'Response status: {response.status_code}')
+        if response.status_code == 200:
+            print(f'✅ Server is ready after {waited} seconds!')
+            break
+    except Exception as e:
+        print(f'Request failed: {e}')
+    
+    if waited + interval <= max_wait:
+        print(f'Still waiting... ({waited + interval}s/{max_wait}s)')
+        time.sleep(interval)
+else:
+    print(f'❌ Server not ready after {max_wait} seconds')
+    sys.exit(1)
+"
+          
+          # Run the evaluation
+          python3 enhanced_eval.py
+
+      - name: Check minimum performance
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          API_URL: https://legal-ease-hxku.onrender.com
+          EVAL_MODEL: gpt-4
+        run: |
+          cd backend
+          python3 -c "
+import json
+import sys
+
 min_accuracy = 0.90
 path = 'enhanced_eval_results.json'
+
 try:
-  with open(path) as f:
-    data = json.load(f)
-  summary = data.get('summary', {})
-  accuracy = float(summary.get('accuracy', 0.0))
-  print(f"Loaded accuracy {accuracy:.1%} from {path}")
+    with open(path, 'r') as f:
+        data = json.load(f)
+    summary = data.get('summary', {})
+    accuracy = float(summary.get('accuracy', 0.0))
+    print(f'Loaded accuracy {accuracy:.1%} from {path}')
 except Exception as e:
-  print(f"Failed to read {path}: {e}")
-  sys.exit(1)
+    print(f'Failed to read {path}: {e}')
+    sys.exit(1)
+
 if accuracy < min_accuracy:
-  print(f"❌ Performance below threshold {min_accuracy:.1%}")
-  sys.exit(1)
-print("✅ Performance meets requirements")
-PYCODE
-    env:
-    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-    API_URL: https://legal-ease-hxku.onrender.com
-    EVAL_MODEL: gpt-4
+    print(f'❌ Performance below threshold {min_accuracy:.1%}')
+    sys.exit(1)
+
+print('✅ Performance meets requirements')
+"
