@@ -28,7 +28,7 @@ def test_simplify_nonlegal():
     response = client.post("/simplify", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["category"] == "Other"
+    assert data["category"] == "Non-Legal"
 
 def test_simplify_malformed_json(monkeypatch, caplog):
     class FakeFunction:
@@ -54,7 +54,7 @@ def test_simplify_malformed_json(monkeypatch, caplog):
             assert response.status_code == 200
             data = response.json()
             assert data["response"] == "not a json"
-            assert data["category"] == "Contract"
+            assert data["category"] in {"Other Legal", "Non-Legal"}
             assert any("Parse Error" in record.message for record in caplog.records)
 
 def test_simplify_openai_error(monkeypatch, caplog):

@@ -23,7 +23,17 @@ tools = [
                 "properties": {
                     "category": {
                         "type": "string",
-                        "enum": ["Contract", "Wills, Trusts, and Estates", "Criminal Procedure", "Real Estate", "Employment Law", "Personal Injury", "Family Law", "Other"],
+                        "enum": [
+                            "Contract",
+                            "Wills, Trusts, and Estates",
+                            "Criminal Procedure",
+                            "Real Estate",
+                            "Employment Law",
+                            "Personal Injury",
+                            "Family Law",
+                            "Other Legal",
+                            "Non-Legal"
+                        ],
                         "description": "The legal area. Must be one of the exact values from the enum list."
                     },
                     "plain_english": {
@@ -72,111 +82,53 @@ prompt_env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__
 
 request_timestamps = defaultdict(list)
 
-LEGAL_KEYWORDS = {
-    "hereby", "whereas", "hereto", "thereof", "therein", "witnesseth", "indemnify",
-    "party", "parties", "agreement", "contract", "jurisdiction", "liability", "estate",
-    "testament", "bequeath", "assigns", "successors", "covenant", "breach", "damages",
-    "negligence", "statute", "clause", "confidentiality", "arbitration", "merger", "legalese"
+# Minimal signal words to distinguish clearly legal vs non-legal text when model fails
+_LEGAL_SIGNAL_WORDS = {
+    "hereby","whereas","agreement","contract","party","indemnify","hold harmless","trust","will","testament","estate",
+    "plaintiff","defendant","warrant","deed","grantor","grantee","title","employee","employer","terminate","termination",
+    "probation","confidential","custody","support","divorce","marriage","liability","negligence","injury","tort","statute"
 }
 
-def is_potentially_legal(text: str) -> bool:
+def _is_likely_legal(text: str) -> bool:
     t = text.lower()
-    return any(k in t for k in LEGAL_KEYWORDS)
-
-def guess_category_from_text(text: str) -> str:
-    """Guess legal category based on keywords in the text - priority order matters"""
-    t = text.lower()
-
-    if ("indemnify" in t or "hold harmless" in t or "indemnification" in t) and \
-       ("agreement" in t or "contract" in t or "party" in t):
-        return "Contract"
-    
-    if any(w in t for w in ["title insurance", "real estate", "closing"]) or \
-       (any(w in t for w in ["buyer", "seller"]) and any(w in t for w in ["property", "deed"])) or \
-       ("grantor" in t and "grantee" in t) or ("conveys" in t and ("grantor" in t or "grantee" in t)) or \
-       (("as is" in t or "latent" in t or "patent" in t) and "property" in t) or \
-       ("subject property" in t):
-        return "Real Estate"
-    
-    personal_injury_core = ["injury", "accident", "tort"]
-    if any(w in t for w in personal_injury_core) and any(w in t for w in ["negligence", "liability", "damages", "harm"]):
-        if not ("indemnify" in t or "hold harmless" in t):
-            return "Personal Injury"
-        
-    estate_terms = ["bequeath", "testament", "will", "trust", "estate", "inherit", "heir", "death", "deceased"]
-    if any(w in t for w in estate_terms):
-        if ("agreement" in t or "contract" in t or "party" in t) and not any(w in t for w in ["will", "trust", "bequeath", "testament"]):
-            pass
-        else:
-            return "Wills, Trusts, and Estates"
-    
-    if any(w in t for w in ["fourth amendment", "evidence", "warrant", "defendant", "prosecution", "constitutional", "criminal"]):
-        return "Criminal Procedure"
-        
-    if any(w in t for w in ["employee", "employer", "employment", "terminate", "probation", "confidential", "workplace"]):
-        return "Employment Law"
-
-    if any(w in t for w in ["custody", "child support", "divorce", "marriage", "parent", "family", "spouse"]):
-        return "Family Law"
-
-    if any(w in t for w in ["party", "agreement", "contract", "indemnify", "binding", "assigns", "successors"]):
-        return "Contract"
-    
-    return "Contract" if is_potentially_legal(text) else "Other"
+    return any(w in t for w in _LEGAL_SIGNAL_WORDS)
 
 def create_basic_translation(text: str) -> str:
-    """Create a very simple plain-English translation heuristically.
-    This is used when the model fails to return a tool call or usable content.
-    It performs conservative phrase substitutions without adding new meaning.
+    """Fallback simplification without adding explanatory prefixes.
+    Applies light, safe substitutions to reduce archaic or formal legal phrasing.
+    Ensures output differs from input when possible.
     """
-    original = text.strip()
+    original = text
     simplified = original
-
     replacements = [
-        (r"\\bshall\\b", "will"),
-        (r"\\bhereby\\b", ""),
-        (r"\\bthereof\\b", "of it"),
-        (r"\\bherein\\b", "here"),
-        (r"\\bwhereas\\b", "because"),
-        (r"\\bparty of the first part\\b", "first party"),
-        (r"\\bparty of the second part\\b", "second party"),
-        (r"\\baforementioned\\b", "mentioned earlier"),
-        (r"\\bpursuant to\\b", "under"),
-        (r"\\bin the event that\\b", "if"),
-        (r"\\bupon my death\\b", "when I die"),
-        (r"\\bprior to\\b", "before"),
-        (r"\\bsubsequent to\\b", "after"),
-        (r"\\bremaining assets\\b", "whatever is left"),
-        (r"\\bdistribute\\b", "give"),
-        (r"\\bgrandchildren\\b", "grandchildren"),
-        # Employment specific phrases
-        (r"\\bmay not be terminated without cause\\b", "can't be fired without a valid reason"),
-        (r"\\bwithout cause\\b", "without a valid reason"),
-        (r"\\binitial probationary period\\b", "probation period"),
+        (r"\bshall\b", "will"),
+        (r"\bhereby\b", ""),
+        (r"\bthereof\b", "of it"),
+        (r"\bherein\b", "here"),
+        (r"\bwhereas\b", "because"),
+        (r"\baforementioned\b", "earlier mentioned"),
+        (r"\bparty of the first part\b", "first party"),
+        (r"\bparty of the second part\b", "second party"),
+        (r"\bupon my death\b", "when I die"),
+        (r"\bremaining assets\b", "what's left"),
+        (r"\bdistribute\b", "give"),
+        (r"\bany and all\b", "all"),
+        (r"\bincluding but not limited to\b", "including"),
+        (r"\bprior to\b", "before"),
+        (r"\bsubsequent to\b", "after"),
     ]
-
     for pattern, repl in replacements:
         try:
             simplified = re.sub(pattern, repl, simplified, flags=re.IGNORECASE)
         except re.error:
             continue
-
     simplified = re.sub(r"\s+", " ", simplified).strip()
-
+    # Guarantee difference if possible
     if simplified.lower() == original.lower():
-        lower = simplified.lower()
-        # Target common clause patterns for light restructuring
-        if "employee" in lower and "terminated" in lower:
-            clause = simplified
-            clause = re.sub(r"may not be terminated without cause", "can't be fired unless there is a valid reason", clause, flags=re.IGNORECASE)
-            clause = re.sub(r"during the initial probationary period", "during the probation period", clause, flags=re.IGNORECASE)
-            simplified = clause
-        if simplified.lower() == original.lower():
-            return f"This means: {original}" if len(original.split()) < 40 else f"In plain English: {original}"
-
-    if 'when I die' in simplified.lower() and 'trustee' in simplified.lower() and 'grandchildren' in simplified.lower():
-        simplified = simplified.rstrip('.') + ". The trustee will split it equally among my grandchildren."
-
+        # As last resort, remove duplicate determiners / mild compression
+        temp = re.sub(r"\bthe the\b", "the", simplified, flags=re.IGNORECASE)
+        if temp.lower() != original.lower():
+            simplified = temp
     return simplified
 
 class SimplifyRequest(BaseModel):
@@ -215,20 +167,9 @@ async def simplify_text(request: SimplifyRequest):
         raise HTTPException(status_code=429, detail="Too many requests. Please try again later.")
     
     legal_text = request.text
-    words = legal_text.split()
-    if not is_potentially_legal(legal_text) and len(words) < 8:
-        confidence = "medium" if len(words) <= 12 else "high"
-        return {
-            "response": legal_text.strip(),
-            "category": "Other",
-            "confidence": confidence,
-            "word_count": len(words),
-            "parse_confidence": "heuristic"
-        }
     try:
         system_prompt = prompt_env.get_template(PROMPT_TEMPLATE).render()
     except Exception:
-        # Fallback to legacy v4 prompt if the specified template is unavailable
         system_prompt = prompt_env.get_template("legal_assistant_v4.txt").render()
 
     logger.info(f"Received request: {legal_text!r}")
@@ -303,25 +244,30 @@ async def simplify_text(request: SimplifyRequest):
                 except Exception:
                     pass
             if not parsed:
-                fallback_category = guess_category_from_text(legal_text)
-                basic_translation = content.strip()
-                if not basic_translation or basic_translation.startswith("Unable to translate") or len(basic_translation.split()) < 3:
-                    basic_translation = create_basic_translation(legal_text)
+                # Fallback: treat as non-legal unless obviously legal tokens present; we avoid deep heuristics.
+                fallback_category = "Other Legal" if _is_likely_legal(legal_text) else "Non-Legal"
                 parsed = {
                     "category": fallback_category,
-                    "plain_english": basic_translation
+                    "plain_english": content.strip() if content.strip() else create_basic_translation(legal_text)
                 }
                 parse_confidence = "low"
 
         if not parsed.get("category") or parsed.get("category").strip() == "":
-            guessed_category = guess_category_from_text(legal_text)
-            parsed["category"] = guessed_category
-            logger.info(f"Used fallback category guess: {guessed_category} for text: {legal_text[:50]}...")
+            parsed["category"] = "Other Legal" if _is_likely_legal(legal_text) else "Non-Legal"
+            logger.info("Assigned fallback category '%s' (minimal detection).", parsed["category"]) 
 
         response_text = parsed.get("plain_english", "").strip()
-        if not response_text or response_text.startswith("Unable to translate") or response_text.lower() == legal_text.lower():
-            logger.info("Applying final heuristic translation safeguard.")
-            parsed["plain_english"] = create_basic_translation(legal_text)
+        if not response_text or response_text.lower() == legal_text.lower():
+            response_text = create_basic_translation(legal_text)
+            parsed["plain_english"] = response_text
+
+        # Standardize Non-Legal output wording
+        if parsed.get("category") == "Non-Legal":
+            norm_original = re.sub(r"\s+", " ", legal_text.strip().lower())
+            norm_resp = re.sub(r"\s+", " ", parsed.get("plain_english", "").strip().lower())
+            if norm_resp == norm_original:
+                parsed["plain_english"] = "This isn't legal language; there's nothing to translate." 
+                response_text = parsed["plain_english"]
         
         confidence = "high" if len(legal_text.split()) > 10 else "medium"
         response_text = parsed.get("plain_english", "")
