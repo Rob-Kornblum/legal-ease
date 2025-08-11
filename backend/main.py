@@ -81,38 +81,31 @@ def is_potentially_legal(text: str) -> bool:
     return any(k in t for k in LEGAL_KEYWORDS)
 
 def guess_category_from_text(text: str) -> str:
-    """Guess legal category based on keywords in the text"""
+    """Guess legal category based on keywords in the text - priority order matters"""
     t = text.lower()
     
-    # Contract keywords
+    if any(w in t for w in ["title insurance", "real estate", "closing"]) or \
+       (any(w in t for w in ["buyer", "seller"]) and any(w in t for w in ["property", "deed"])):
+        return "Real Estate"
+    
+    if any(w in t for w in ["plaintiff", "damages", "injury", "negligence", "accident", "liability", "tort"]):
+        return "Personal Injury"
+        
+    if any(w in t for w in ["bequeath", "testament", "will", "trust", "estate", "inherit", "heir", "death", "deceased"]):
+        return "Wills, Trusts, and Estates"
+    
+    if any(w in t for w in ["fourth amendment", "evidence", "warrant", "defendant", "prosecution", "constitutional", "criminal"]):
+        return "Criminal Procedure"
+        
+    if any(w in t for w in ["employee", "employer", "employment", "terminate", "probation", "confidential", "workplace"]):
+        return "Employment Law"
+
+    if any(w in t for w in ["custody", "child support", "divorce", "marriage", "parent", "family", "spouse"]):
+        return "Family Law"
+
     if any(w in t for w in ["party", "agreement", "contract", "indemnify", "binding", "assigns", "successors"]):
         return "Contract"
     
-    # Wills/Trusts keywords
-    if any(w in t for w in ["bequeath", "testament", "will", "trust", "estate", "inherit", "heir"]):
-        return "Wills, Trusts, and Estates"
-        
-    # Criminal Procedure keywords
-    if any(w in t for w in ["fourth amendment", "evidence", "warrant", "defendant", "prosecution", "constitutional"]):
-        return "Criminal Procedure"
-        
-    # Real Estate keywords
-    if any(w in t for w in ["property", "deed", "title", "buyer", "seller", "grantor", "grantee", "real estate"]):
-        return "Real Estate"
-        
-    # Employment Law keywords
-    if any(w in t for w in ["employee", "employer", "employment", "terminate", "probation", "confidential"]):
-        return "Employment Law"
-        
-    # Personal Injury keywords
-    if any(w in t for w in ["plaintiff", "damages", "injury", "negligence", "accident", "breach", "duty"]):
-        return "Personal Injury"
-        
-    # Family Law keywords
-    if any(w in t for w in ["custody", "child support", "divorce", "marriage", "parent", "family"]):
-        return "Family Law"
-    
-    # Default to Other if no legal keywords or Contract if legal keywords present
     return "Contract" if is_potentially_legal(text) else "Other"
 
 class SimplifyRequest(BaseModel):
@@ -208,9 +201,7 @@ async def simplify_text(request: SimplifyRequest):
                 parse_confidence = "high"
             except Exception as parse_err:
                 logger.error(f"Parse Error decoding function arguments: {parse_err}")
-                # Try to extract category and plain_english from malformed JSON
                 try:
-                    # Look for quoted strings that might be the values
                     category_match = re.search(r'"category"\s*:\s*"([^"]+)"', args_str)
                     text_match = re.search(r'"plain_english"\s*:\s*"([^"]+)"', args_str)
                     if category_match and text_match:
@@ -226,7 +217,6 @@ async def simplify_text(request: SimplifyRequest):
                     parsed = {"category": "", "plain_english": args_str}
                     parse_confidence = "low"
         else:
-            # Fallback: attempt to extract JSON from raw content
             content = getattr(choice, "content", "") or ""
             json_match = re.search(r"\{[\s\S]*\}", content)
             if json_match:
@@ -238,15 +228,17 @@ async def simplify_text(request: SimplifyRequest):
                 except Exception:
                     pass
             if not parsed:
-                # Last resort: treat content as plain English explanation and guess category
+                fallback_category = guess_category_from_text(legal_text)
                 parsed = {
-                    "category": guess_category_from_text(legal_text),
-                    "plain_english": content.strip() if content.strip() else legal_text
+                    "category": fallback_category,
+                    "plain_english": content.strip() if content.strip() else f"Unable to translate: {legal_text}"
                 }
                 parse_confidence = "low"
 
-        if not parsed.get("category"):
-            parsed["category"] = guess_category_from_text(legal_text)
+        if not parsed.get("category") or parsed.get("category").strip() == "":
+            guessed_category = guess_category_from_text(legal_text)
+            parsed["category"] = guessed_category
+            logger.info(f"Used fallback category guess: {guessed_category} for text: {legal_text[:50]}...")
         
         confidence = "high" if len(legal_text.split()) > 10 else "medium"
         response_text = parsed.get("plain_english", "")
