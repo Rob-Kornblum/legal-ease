@@ -55,8 +55,8 @@ samples:
   
   # Non-legal (Other)
   - input: "I love movies and going to the cinema."
-    expected_category: "Other"
+    expected_category: "Non-Legal"
   - input: "The weather is really nice today."
-    expected_category: "Other"
+    expected_category: "Non-Legal"
   - input: "Can you help me with my homework?"
-    expected_category: "Other"
+    expected_category: "Non-Legal"

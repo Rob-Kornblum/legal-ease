@@ -60,7 +60,6 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 MODEL_NAME = os.getenv("OPENAI_MODEL", "gpt-5")
 logger.info(f"Using OpenAI model: {MODEL_NAME}")
 
-# Allow selecting a different prompt template (principle-based v5 by default). Fallback to v4 if not found.
 PROMPT_TEMPLATE = os.getenv("PROMPT_TEMPLATE", "legal_assistant_v5.txt")
 
 app = FastAPI()
@@ -82,12 +81,13 @@ prompt_env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__
 
 request_timestamps = defaultdict(list)
 
-# Minimal signal words to distinguish clearly legal vs non-legal text when model fails
 _LEGAL_SIGNAL_WORDS = {
     "hereby","whereas","agreement","contract","party","indemnify","hold harmless","trust","will","testament","estate",
     "plaintiff","defendant","warrant","deed","grantor","grantee","title","employee","employer","terminate","termination",
     "probation","confidential","custody","support","divorce","marriage","liability","negligence","injury","tort","statute"
 }
+
+_ESTATE_TERMS = {"will", "wills", "codicil", "codicils", "trust", "trustee", "estate", "testament", "beneficiary", "heir", "heirs", "probate"}
 
 def _is_likely_legal(text: str) -> bool:
     t = text.lower()
@@ -123,9 +123,7 @@ def create_basic_translation(text: str) -> str:
         except re.error:
             continue
     simplified = re.sub(r"\s+", " ", simplified).strip()
-    # Guarantee difference if possible
     if simplified.lower() == original.lower():
-        # As last resort, remove duplicate determiners / mild compression
         temp = re.sub(r"\bthe the\b", "the", simplified, flags=re.IGNORECASE)
         if temp.lower() != original.lower():
             simplified = temp
@@ -244,8 +242,12 @@ async def simplify_text(request: SimplifyRequest):
                 except Exception:
                     pass
             if not parsed:
-                # Fallback: treat as non-legal unless obviously legal tokens present; we avoid deep heuristics.
-                fallback_category = "Other Legal" if _is_likely_legal(legal_text) else "Non-Legal"
+                # Fallback with estate detection
+                lower_text = legal_text.lower()
+                if any(t in lower_text for t in _ESTATE_TERMS):
+                    fallback_category = "Wills, Trusts, and Estates"
+                else:
+                    fallback_category = "Other Legal" if _is_likely_legal(legal_text) else "Non-Legal"
                 parsed = {
                     "category": fallback_category,
                     "plain_english": content.strip() if content.strip() else create_basic_translation(legal_text)

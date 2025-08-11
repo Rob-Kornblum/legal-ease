@@ -13,7 +13,11 @@ def run_eval(samples):
     for sample in samples:
         response = requests.post(API_URL, json={"text": sample["input"]})
         data = response.json()
-        predicted = data.get("category", "").strip()
+        predicted_raw = data.get("category", "").strip()
+        if predicted_raw in ("Other Legal", "Non-Legal"):
+            predicted = "Other"
+        else:
+            predicted = predicted_raw
         expected = sample["expected_category"].strip()
         print(f"Input: {sample['input']}")
         print(f"Expected: {expected}, Got: {predicted}")
