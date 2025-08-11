@@ -1,10 +1,10 @@
 {
   "summary": {
     "total_samples": 23,
-    "category_correct": 23,
-    "accuracy": 1.0,
-    "average_quality": 3.05,
-    "timestamp": 1754871165.9146712,
+    "category_correct": 22,
+    "accuracy": 0.9565217391304348,
+    "average_quality": 4.7,
+    "timestamp": 1754887355.5265222,
     "model": "gpt-4",
     "skip_quality": false
   },
@@ -14,23 +14,23 @@
       "expected_category": "Wills, Trusts, and Estates",
       "predicted_category": "Wills, Trusts, and Estates",
       "category_correct": true,
-      "translation": "Unable to translate: I hereby bequeath all my personal property to my children, to be divided equally among them.",
-      "quality_score": 1
+      "translation": "I bequeath all my personal property to my children, to be divided equally among them.",
+      "quality_score": 5
     },
     {
       "input": "The party of the first part shall indemnify and hold harmless the party of the second part.",
       "expected_category": "Contract",
       "predicted_category": "Contract",
       "category_correct": true,
-      "translation": "Unable to translate: The party of the first part shall indemnify and hold harmless the party of the second part.",
-      "quality_score": 1
+      "translation": "The first party will indemnify and hold harmless the second party.",
+      "quality_score": 5
     },
     {
       "input": "Time is of the essence in the performance of all obligations under this Agreement.",
       "expected_category": "Contract",
       "predicted_category": "Contract",
       "category_correct": true,
-      "translation": "Deadlines are critical. You must complete every obligation in this agreement on time, and being late counts as a breach of the contract.",
+      "translation": "Deadlines matter. You must complete everything required by this agreement on time, and delays can count as a breach of the contract.",
       "quality_score": 4
     },
     {
@@ -38,7 +38,7 @@
       "expected_category": "Contract",
       "predicted_category": "Contract",
       "category_correct": true,
-      "translation": "This contract still applies to anyone who takes over a party\u2019s rights or obligations\u2014such as their heirs (after death), successors (a new company or owner), or people they transfer the contract to (assigns).",
+      "translation": "This Agreement will be binding upon the heirs, successors, and assigns of the parties.",
       "quality_score": 5
     },
     {
@@ -46,7 +46,7 @@
       "expected_category": "Criminal Procedure",
       "predicted_category": "Criminal Procedure",
       "category_correct": true,
-      "translation": "Evidence that police get by breaking the Fourth Amendment (such as through an illegal search or seizure) cannot be used against someone in a criminal case.",
+      "translation": "Any evidence obtained in violation of the Fourth Amendment will be inadmissible in a criminal prosecution.",
       "quality_score": 5
     },
     {
@@ -54,39 +54,39 @@
       "expected_category": "Criminal Procedure",
       "predicted_category": "Criminal Procedure",
       "category_correct": true,
-      "translation": "Unable to translate: The defendant has the right to remain silent and to have an attorney present during questioning.",
-      "quality_score": 1
+      "translation": "A person accused of a crime does not have to answer police questions, and they can have a lawyer with them while being questioned.",
+      "quality_score": 4
     },
     {
       "input": "Probable cause must exist before a search warrant may be issued.",
       "expected_category": "Criminal Procedure",
       "predicted_category": "Criminal Procedure",
       "category_correct": true,
-      "translation": "Unable to translate: Probable cause must exist before a search warrant may be issued.",
-      "quality_score": 1
+      "translation": "This means: Probable cause must exist before a search warrant may be issued.",
+      "quality_score": 5
     },
     {
       "input": "The buyer shall obtain title insurance at their own expense and the seller shall deliver a warranty deed at closing.",
       "expected_category": "Real Estate",
       "predicted_category": "Real Estate",
       "category_correct": true,
-      "translation": "Unable to translate: The buyer shall obtain title insurance at their own expense and the seller shall deliver a warranty deed at closing.",
-      "quality_score": 1
+      "translation": "The buyer will obtain title insurance at their own expense and the seller will deliver a warranty deed at closing.",
+      "quality_score": 5
     },
     {
       "input": "The grantor hereby conveys to the grantee all right, title, and interest in the above-described property.",
       "expected_category": "Real Estate",
       "predicted_category": "Real Estate",
       "category_correct": true,
-      "translation": "The person giving the property (the grantor) is transferring all of their ownership rights in the described property to the recipient (the grantee).",
-      "quality_score": 5
+      "translation": "The person transferring the property is giving the recipient all of their ownership rights in the property described above.",
+      "quality_score": 4
     },
     {
       "input": "Subject property is sold 'as is' with all faults, latent and patent.",
       "expected_category": "Real Estate",
-      "predicted_category": "Real Estate",
-      "category_correct": true,
-      "translation": "The property is being sold exactly as it is now. The seller makes no promises about its condition and won\u2019t fix anything. The buyer accepts all problems\u2014both obvious and hidden\u2014and can\u2019t hold the seller responsible for them after the sale.",
+      "predicted_category": "Other",
+      "category_correct": false,
+      "translation": "This means: Subject property is sold 'as is' with all faults, latent and patent.",
       "quality_score": 4
     },
     {
@@ -94,7 +94,7 @@
       "expected_category": "Employment Law",
       "predicted_category": "Employment Law",
       "category_correct": true,
-      "translation": "During the initial probation period, the employer can only fire the employee if there is a valid reason. They cannot dismiss the employee for no reason.",
+      "translation": "During the initial probation period, the employee can only be fired for a specific, valid reason; they cannot be dismissed without cause.",
       "quality_score": 5
     },
     {
@@ -102,23 +102,23 @@
       "expected_category": "Employment Law",
       "predicted_category": "Employment Law",
       "category_correct": true,
-      "translation": "Unable to translate: Employee agrees not to disclose any confidential or proprietary information during or after employment.",
-      "quality_score": 1
+      "translation": "The employee promises not to share the company\u2019s confidential or proprietary information while employed or after leaving the job.",
+      "quality_score": 5
     },
     {
       "input": "Employer shall provide thirty (30) days written notice prior to any reduction in force.",
       "expected_category": "Employment Law",
       "predicted_category": "Employment Law",
       "category_correct": true,
-      "translation": "Unable to translate: Employer shall provide thirty (30) days written notice prior to any reduction in force.",
-      "quality_score": 1
+      "translation": "The employer must give employees at least 30 days\u2019 written notice before any layoffs or workforce reductions happen.",
+      "quality_score": 5
     },
     {
       "input": "The custodial parent shall have the right to make decisions regarding the child's education, health care, and religious upbringing.",
       "expected_category": "Family Law",
       "predicted_category": "Family Law",
       "category_correct": true,
-      "translation": "The parent who has custody gets to decide the child\u2019s schooling, medical care, and religious upbringing.",
+      "translation": "The custodial parent will have the right to make decisions regarding the child's education, health care, and religious upbringing.",
       "quality_score": 5
     },
     {
@@ -126,7 +126,7 @@
       "expected_category": "Family Law",
       "predicted_category": "Family Law",
       "category_correct": true,
-      "translation": "You must pay $500 in child support every month, and the payment is due on the first day of each month.",
+      "translation": "Child support payments will be made in the amount of $500 per month, due on the first of each month.",
       "quality_score": 5
     },
     {
@@ -134,7 +134,7 @@
       "expected_category": "Family Law",
       "predicted_category": "Family Law",
       "category_correct": true,
-      "translation": "Both parents will share major decision-making for the child, but the child will live mainly with the mother, who has primary physical custody.",
+      "translation": "This means: The parties agree to joint legal custody with primary physical custody to the mother.",
       "quality_score": 5
     },
     {
@@ -142,15 +142,15 @@
       "expected_category": "Personal Injury",
       "predicted_category": "Personal Injury",
       "category_correct": true,
-      "translation": "Unable to translate: The plaintiff seeks damages for injuries sustained in a car accident caused by the defendant's negligence.",
-      "quality_score": 1
+      "translation": "This means: The plaintiff seeks damages for injuries sustained in a car accident caused by the defendant's negligence.",
+      "quality_score": 5
     },
     {
       "input": "Defendant breached the duty of care owed to plaintiff, resulting in compensable damages.",
       "expected_category": "Personal Injury",
       "predicted_category": "Personal Injury",
       "category_correct": true,
-      "translation": "The defendant didn\u2019t use reasonable care toward the plaintiff, and because of that the plaintiff was harmed and can seek money to cover those losses.",
+      "translation": "The defendant didn\u2019t act with reasonable care toward the plaintiff, and that failure caused harm for which the plaintiff can get money damages.",
       "quality_score": 5
     },
     {
@@ -166,15 +166,15 @@
       "expected_category": "Wills, Trusts, and Estates",
       "predicted_category": "Wills, Trusts, and Estates",
       "category_correct": true,
-      "translation": "Unable to translate: I revoke all prior wills and codicils made by me and declare this to be my last will and testament.",
-      "quality_score": 1
+      "translation": "This cancels any earlier wills or changes to them, and says that this document is my official final will.",
+      "quality_score": 4
     },
     {
       "input": "I love movies and going to the cinema.",
       "expected_category": "Other",
       "predicted_category": "Other",
       "category_correct": true,
-      "translation": "Unable to translate: I love movies and going to the cinema.",
+      "translation": "This means: I love movies and going to the cinema.",
       "quality_score": null
     },
     {

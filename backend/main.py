@@ -83,16 +83,29 @@ def is_potentially_legal(text: str) -> bool:
 def guess_category_from_text(text: str) -> str:
     """Guess legal category based on keywords in the text - priority order matters"""
     t = text.lower()
+
+    if ("indemnify" in t or "hold harmless" in t or "indemnification" in t) and \
+       ("agreement" in t or "contract" in t or "party" in t):
+        return "Contract"
     
     if any(w in t for w in ["title insurance", "real estate", "closing"]) or \
-       (any(w in t for w in ["buyer", "seller"]) and any(w in t for w in ["property", "deed"])):
+       (any(w in t for w in ["buyer", "seller"]) and any(w in t for w in ["property", "deed"])) or \
+       ("grantor" in t and "grantee" in t) or ("conveys" in t and ("grantor" in t or "grantee" in t)) or \
+       (("as is" in t or "latent" in t or "patent" in t) and "property" in t) or \
+       ("subject property" in t):
         return "Real Estate"
     
-    if any(w in t for w in ["plaintiff", "damages", "injury", "negligence", "accident", "liability", "tort"]):
-        return "Personal Injury"
+    personal_injury_core = ["injury", "accident", "tort"]
+    if any(w in t for w in personal_injury_core) and any(w in t for w in ["negligence", "liability", "damages", "harm"]):
+        if not ("indemnify" in t or "hold harmless" in t):  # indemnity clause exclusion
+            return "Personal Injury"
         
-    if any(w in t for w in ["bequeath", "testament", "will", "trust", "estate", "inherit", "heir", "death", "deceased"]):
-        return "Wills, Trusts, and Estates"
+    estate_terms = ["bequeath", "testament", "will", "trust", "estate", "inherit", "heir", "death", "deceased"]
+    if any(w in t for w in estate_terms):
+        if ("agreement" in t or "contract" in t or "party" in t) and not any(w in t for w in ["will", "trust", "bequeath", "testament"]):
+            pass
+        else:
+            return "Wills, Trusts, and Estates"
     
     if any(w in t for w in ["fourth amendment", "evidence", "warrant", "defendant", "prosecution", "constitutional", "criminal"]):
         return "Criminal Procedure"
@@ -116,7 +129,6 @@ def create_basic_translation(text: str) -> str:
     original = text.strip()
     simplified = original
 
-    # Common legal → plain substitutions (order matters)
     replacements = [
         (r"\bshall\b", "will"),
         (r"\bhereby\b", ""),
@@ -133,7 +145,7 @@ def create_basic_translation(text: str) -> str:
         (r"\bsubsequent to\b", "after"),
         (r"\bremaining assets\b", "whatever is left"),
         (r"\bdistribute\b", "give"),
-        (r"\bgrandchildren\b", "grandchildren"),  # no change, placeholder for future rules
+        (r"\bgrandchildren\b", "grandchildren"),
     ]
 
     for pattern, repl in replacements:
@@ -142,14 +154,11 @@ def create_basic_translation(text: str) -> str:
         except re.error:
             continue
 
-    # Light normalization: collapse multiple spaces created by removals
     simplified = re.sub(r"\s+", " ", simplified).strip()
 
-    # If unchanged or too similar, just prepend a plain explanation
     if simplified.lower() == original.lower():
         return f"This means: {original}" if len(original.split()) < 40 else f"In plain English: {original}"
 
-    # Make sure we clarify perspective for estate language
     if 'when I die' in simplified.lower() and 'trustee' in simplified.lower() and 'grandchildren' in simplified.lower():
         simplified = simplified.rstrip('.') + ". The trustee will split it equally among my grandchildren."
 

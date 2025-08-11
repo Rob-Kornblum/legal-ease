@@ -14,13 +14,13 @@ Key words: "bequeath", "testament", "will", "trust", "estate", "inherit", "heir"
 Key words: "Fourth Amendment", "evidence", "warrant", "defendant", "prosecution", "constitutional", "criminal", "arrest"
 
 **"Real Estate"** - property transactions, deeds, title insurance, real estate purchases/sales
-Key words: "buyer", "seller", "title insurance", "deed", "property", "grantor", "grantee", "real estate", "closing"
+Key words: "buyer", "seller", "title insurance", "deed", "property", "grantor", "grantee", "real estate", "closing", "conveys", "as is", "latent", "patent", "subject property"
 
 **"Employment Law"** - workplace rights, employment contracts, termination, labor relations
 Key words: "employee", "employer", "employment", "terminate", "probation", "confidential", "workplace"
 
 **"Personal Injury"** - tort claims, negligence, accident liability, civil damages from injuries
-Key words: "plaintiff", "damages", "injury", "negligence", "accident", "liability", "tort", "harm"
+Key words: "damages", "injury", "negligence", "accident", "liability", "tort", "harm" (Note: the word "plaintiff" alone is NOT enough; it appears in many contexts.)
 
 **"Family Law"** - divorce, custody, child support, parental rights, marriage/family matters
 Key words: "custody", "child support", "divorce", "marriage", "parent", "family", "spouse"
@@ -29,8 +29,11 @@ Key words: "custody", "child support", "divorce", "marriage", "parent", "family"
 
 CLASSIFICATION PRIORITY:
 - If text mentions "buyer/seller" + "title insurance" + property → Real Estate
-- If text mentions "plaintiff" + "damages" + injury → Personal Injury  
+- If text mentions injury/accident/tort + negligence/damages → Personal Injury  
 - If text mentions "bequeath" or death/inheritance → Wills, Trusts, and Estates
 - If text mentions "party" + contracts/agreements → Contract
+ - Indemnification / hold harmless clauses allocating risk between parties (even if they mention negligence, liability, or damages) → Contract, NOT Personal Injury
+ - Grantor/grantee language conveying property ("grantor hereby conveys to grantee") → Real Estate
+ - Boilerplate "heirs, successors, and assigns" in a contract WITHOUT explicit will/trust/bequest language → Contract, not Wills/Estates
 
 For the plain English translation: Use simple, everyday language while preserving the legal meaning.
