@@ -26,7 +26,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           API_URL: https://legal-ease-hxku.onrender.com
-          EVAL_MODEL: gpt-4
+          EVAL_MODEL: gpt-5
           EVAL_RESULTS_PATH: enhanced_eval_results.json
         run: |
           cd backend
@@ -74,7 +74,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           API_URL: https://legal-ease-hxku.onrender.com
-          EVAL_MODEL: gpt-4
+          EVAL_MODEL: gpt-5
         run: |
           cd backend
           python3 <<EOF
