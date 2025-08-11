@@ -50,6 +50,9 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 MODEL_NAME = os.getenv("OPENAI_MODEL", "gpt-5")
 logger.info(f"Using OpenAI model: {MODEL_NAME}")
 
+# Allow selecting a different prompt template (principle-based v5 by default). Fallback to v4 if not found.
+PROMPT_TEMPLATE = os.getenv("PROMPT_TEMPLATE", "legal_assistant_v5.txt")
+
 app = FastAPI()
 
 frontend_origin = os.getenv("FRONTEND_ORIGIN")
@@ -97,7 +100,7 @@ def guess_category_from_text(text: str) -> str:
     
     personal_injury_core = ["injury", "accident", "tort"]
     if any(w in t for w in personal_injury_core) and any(w in t for w in ["negligence", "liability", "damages", "harm"]):
-        if not ("indemnify" in t or "hold harmless" in t):  # indemnity clause exclusion
+        if not ("indemnify" in t or "hold harmless" in t):
             return "Personal Injury"
         
     estate_terms = ["bequeath", "testament", "will", "trust", "estate", "inherit", "heir", "death", "deceased"]
@@ -130,22 +133,26 @@ def create_basic_translation(text: str) -> str:
     simplified = original
 
     replacements = [
-        (r"\bshall\b", "will"),
-        (r"\bhereby\b", ""),
-        (r"\bthereof\b", "of it"),
-        (r"\bherein\b", "here"),
-        (r"\bwhereas\b", "because"),
-        (r"\bparty of the first part\b", "first party"),
-        (r"\bparty of the second part\b", "second party"),
-        (r"\baforementioned\b", "mentioned earlier"),
-        (r"\bpursuant to\b", "under"),
-        (r"\bin the event that\b", "if"),
-        (r"\bupon my death\b", "when I die"),
-        (r"\bprior to\b", "before"),
-        (r"\bsubsequent to\b", "after"),
-        (r"\bremaining assets\b", "whatever is left"),
-        (r"\bdistribute\b", "give"),
-        (r"\bgrandchildren\b", "grandchildren"),
+        (r"\\bshall\\b", "will"),
+        (r"\\bhereby\\b", ""),
+        (r"\\bthereof\\b", "of it"),
+        (r"\\bherein\\b", "here"),
+        (r"\\bwhereas\\b", "because"),
+        (r"\\bparty of the first part\\b", "first party"),
+        (r"\\bparty of the second part\\b", "second party"),
+        (r"\\baforementioned\\b", "mentioned earlier"),
+        (r"\\bpursuant to\\b", "under"),
+        (r"\\bin the event that\\b", "if"),
+        (r"\\bupon my death\\b", "when I die"),
+        (r"\\bprior to\\b", "before"),
+        (r"\\bsubsequent to\\b", "after"),
+        (r"\\bremaining assets\\b", "whatever is left"),
+        (r"\\bdistribute\\b", "give"),
+        (r"\\bgrandchildren\\b", "grandchildren"),
+        # Employment specific phrases
+        (r"\\bmay not be terminated without cause\\b", "can't be fired without a valid reason"),
+        (r"\\bwithout cause\\b", "without a valid reason"),
+        (r"\\binitial probationary period\\b", "probation period"),
     ]
 
     for pattern, repl in replacements:
@@ -157,7 +164,15 @@ def create_basic_translation(text: str) -> str:
     simplified = re.sub(r"\s+", " ", simplified).strip()
 
     if simplified.lower() == original.lower():
-        return f"This means: {original}" if len(original.split()) < 40 else f"In plain English: {original}"
+        lower = simplified.lower()
+        # Target common clause patterns for light restructuring
+        if "employee" in lower and "terminated" in lower:
+            clause = simplified
+            clause = re.sub(r"may not be terminated without cause", "can't be fired unless there is a valid reason", clause, flags=re.IGNORECASE)
+            clause = re.sub(r"during the initial probationary period", "during the probation period", clause, flags=re.IGNORECASE)
+            simplified = clause
+        if simplified.lower() == original.lower():
+            return f"This means: {original}" if len(original.split()) < 40 else f"In plain English: {original}"
 
     if 'when I die' in simplified.lower() and 'trustee' in simplified.lower() and 'grandchildren' in simplified.lower():
         simplified = simplified.rstrip('.') + ". The trustee will split it equally among my grandchildren."
@@ -210,7 +225,11 @@ async def simplify_text(request: SimplifyRequest):
             "word_count": len(words),
             "parse_confidence": "heuristic"
         }
-    system_prompt = prompt_env.get_template("legal_assistant_v4.txt").render()
+    try:
+        system_prompt = prompt_env.get_template(PROMPT_TEMPLATE).render()
+    except Exception:
+        # Fallback to legacy v4 prompt if the specified template is unavailable
+        system_prompt = prompt_env.get_template("legal_assistant_v4.txt").render()
 
     logger.info(f"Received request: {legal_text!r}")
 
