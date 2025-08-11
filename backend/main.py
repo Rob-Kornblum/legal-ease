@@ -89,6 +89,34 @@ _LEGAL_SIGNAL_WORDS = {
 
 _ESTATE_TERMS = {"will", "wills", "codicil", "codicils", "trust", "trustee", "estate", "testament", "beneficiary", "heir", "heirs", "probate"}
 
+_CATEGORY_TERMS = {
+    "Contract": {"indemnify", "hold harmless", "agreement", "party of the first part", "party of the second part", "time is of the essence", "binding upon", "assigns"},
+    "Criminal Procedure": {"fourth amendment", "defendant", "search warrant", "probable cause", "remain silent", "attorney present"},
+    "Real Estate": {"title insurance", "warranty deed", "grantor", "grantee", "closing", "conveys", "convey", "as is", "property"},
+    "Employment Law": {"employee", "employer", "probationary", "terminated", "termination", "confidential", "proprietary", "reduction in force"},
+    "Family Law": {"custodial", "child support", "custody", "divorce", "parental"},
+    "Personal Injury": {"negligence", "duty of care", "damages", "car accident", "injuries", "plaintiff seeks"},
+}
+
+def adjust_category(legal_text: str, category: str) -> str:
+    """If the model returned Other Legal or Non-Legal but clear trigger terms exist, promote to specific category.
+    Protect Contract vs Estate overlap: presence of 'agreement' or 'indemnify' keeps Contract even if 'heirs' appears.
+    """
+    lowered = legal_text.lower()
+    if category in ("Other Legal", "Non-Legal"):
+        if any(t in lowered for t in _ESTATE_TERMS):
+            if "agreement" in lowered and not any(w in lowered for w in ("bequeath", "codicil", "last will", "testament")) and "upon my death" not in lowered:
+                return "Contract"
+            return "Wills, Trusts, and Estates"
+        if any(t in lowered for t in _CATEGORY_TERMS["Contract"]):
+            return "Contract"
+        for cat, terms in _CATEGORY_TERMS.items():
+            if cat == "Contract":
+                continue
+            if any(t in lowered for t in terms):
+                return cat
+    return category
+
 def _is_likely_legal(text: str) -> bool:
     t = text.lower()
     return any(w in t for w in _LEGAL_SIGNAL_WORDS)
@@ -257,6 +285,14 @@ async def simplify_text(request: SimplifyRequest):
         if not parsed.get("category") or parsed.get("category").strip() == "":
             parsed["category"] = "Other Legal" if _is_likely_legal(legal_text) else "Non-Legal"
             logger.info("Assigned fallback category '%s' (minimal detection).", parsed["category"]) 
+
+        # Post-adjustment to rescue obvious category signals misclassified as Other / Non-Legal
+        original_category = parsed.get("category", "")
+        new_category = adjust_category(legal_text, original_category)
+        if new_category != original_category:
+            parsed["category"] = new_category
+            if parse_confidence == "high":
+                parse_confidence = "adjusted"  # indicate override applied
 
         response_text = parsed.get("plain_english", "").strip()
         if not response_text or response_text.lower() == legal_text.lower():

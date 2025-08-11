@@ -34,6 +34,7 @@ Category selection principles:
 - Procedural rights, warrants, defendants, constitutional search/seizure = Criminal Procedure.
 - Employment terms (employee, employer, termination rules, confidentiality during employment) = Employment Law.
 - Custody, support, divorce, marriage, parental rights = Family Law.
+- If ANY of these strong trigger clusters appear, do NOT return Other Legal or Non-Legal.
 
 Translation guidelines:
 - Prefer everyday verbs ("give" over "distribute", "end" over "terminate") unless precision would be lost.
