@@ -130,6 +130,18 @@ def adjust_category(legal_text: str, category: str) -> str:
         has_strong_criminal = any(t in lowered for t in criminal_terms)
         if pi_hits >= 1 and not has_strong_criminal:
             return "Personal Injury"
+    if category == "Real Estate":
+        real_estate_terms = _CATEGORY_TERMS.get("Real Estate", set())
+        re_hits = sum(1 for t in real_estate_terms if t in lowered)
+        strong_estate = any(w in lowered for w in ("bequeath", "codicil", "last will", "upon my death", "trustee", "testament"))
+        if strong_estate and re_hits == 0:
+            return "Wills, Trusts, and Estates"
+        if "bequeath" in lowered:
+            return "Wills, Trusts, and Estates"
+    if category not in ("Wills, Trusts, and Estates"):
+        if any(w in lowered for w in ("bequeath", "last will", "codicil", "upon my death", "testament")):
+            if not ("agreement" in lowered and not any(w in lowered for w in ("bequeath", "codicil", "last will", "upon my death", "testament"))):
+                return "Wills, Trusts, and Estates"
     return category
 
 def _is_likely_legal(text: str) -> bool:
