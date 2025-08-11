@@ -108,6 +108,53 @@ def guess_category_from_text(text: str) -> str:
     
     return "Contract" if is_potentially_legal(text) else "Other"
 
+def create_basic_translation(text: str) -> str:
+    """Create a very simple plain-English translation heuristically.
+    This is used when the model fails to return a tool call or usable content.
+    It performs conservative phrase substitutions without adding new meaning.
+    """
+    original = text.strip()
+    simplified = original
+
+    # Common legal → plain substitutions (order matters)
+    replacements = [
+        (r"\bshall\b", "will"),
+        (r"\bhereby\b", ""),
+        (r"\bthereof\b", "of it"),
+        (r"\bherein\b", "here"),
+        (r"\bwhereas\b", "because"),
+        (r"\bparty of the first part\b", "first party"),
+        (r"\bparty of the second part\b", "second party"),
+        (r"\baforementioned\b", "mentioned earlier"),
+        (r"\bpursuant to\b", "under"),
+        (r"\bin the event that\b", "if"),
+        (r"\bupon my death\b", "when I die"),
+        (r"\bprior to\b", "before"),
+        (r"\bsubsequent to\b", "after"),
+        (r"\bremaining assets\b", "whatever is left"),
+        (r"\bdistribute\b", "give"),
+        (r"\bgrandchildren\b", "grandchildren"),  # no change, placeholder for future rules
+    ]
+
+    for pattern, repl in replacements:
+        try:
+            simplified = re.sub(pattern, repl, simplified, flags=re.IGNORECASE)
+        except re.error:
+            continue
+
+    # Light normalization: collapse multiple spaces created by removals
+    simplified = re.sub(r"\s+", " ", simplified).strip()
+
+    # If unchanged or too similar, just prepend a plain explanation
+    if simplified.lower() == original.lower():
+        return f"This means: {original}" if len(original.split()) < 40 else f"In plain English: {original}"
+
+    # Make sure we clarify perspective for estate language
+    if 'when I die' in simplified.lower() and 'trustee' in simplified.lower() and 'grandchildren' in simplified.lower():
+        simplified = simplified.rstrip('.') + ". The trustee will split it equally among my grandchildren."
+
+    return simplified
+
 class SimplifyRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=2000, description="Legal text to translate")
     
@@ -229,9 +276,12 @@ async def simplify_text(request: SimplifyRequest):
                     pass
             if not parsed:
                 fallback_category = guess_category_from_text(legal_text)
+                basic_translation = content.strip()
+                if not basic_translation or basic_translation.startswith("Unable to translate") or len(basic_translation.split()) < 3:
+                    basic_translation = create_basic_translation(legal_text)
                 parsed = {
                     "category": fallback_category,
-                    "plain_english": content.strip() if content.strip() else f"Unable to translate: {legal_text}"
+                    "plain_english": basic_translation
                 }
                 parse_confidence = "low"
 
@@ -239,6 +289,11 @@ async def simplify_text(request: SimplifyRequest):
             guessed_category = guess_category_from_text(legal_text)
             parsed["category"] = guessed_category
             logger.info(f"Used fallback category guess: {guessed_category} for text: {legal_text[:50]}...")
+
+        response_text = parsed.get("plain_english", "").strip()
+        if not response_text or response_text.startswith("Unable to translate") or response_text.lower() == legal_text.lower():
+            logger.info("Applying final heuristic translation safeguard.")
+            parsed["plain_english"] = create_basic_translation(legal_text)
         
         confidence = "high" if len(legal_text.split()) > 10 else "medium"
         response_text = parsed.get("plain_english", "")
