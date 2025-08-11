@@ -91,11 +91,11 @@ _ESTATE_TERMS = {"will", "wills", "codicil", "codicils", "trust", "trustee", "es
 
 _CATEGORY_TERMS = {
     "Contract": {"indemnify", "hold harmless", "agreement", "party of the first part", "party of the second part", "time is of the essence", "binding upon", "assigns"},
-    "Criminal Procedure": {"fourth amendment", "defendant", "search warrant", "probable cause", "remain silent", "attorney present"},
-    "Real Estate": {"title insurance", "warranty deed", "grantor", "grantee", "closing", "conveys", "convey", "as is", "property"},
+    "Criminal Procedure": {"fourth amendment", "defendant", "search warrant", "probable cause", "remain silent", "attorney present", "criminal prosecution", "incriminating"},
+    "Real Estate": {"title insurance", "warranty deed", "grantor", "grantee", "closing", "conveys", "convey", "as is", "warranty deed", "seller", "buyer"},
     "Employment Law": {"employee", "employer", "probationary", "terminated", "termination", "confidential", "proprietary", "reduction in force"},
-    "Family Law": {"custodial", "child support", "custody", "divorce", "parental"},
-    "Personal Injury": {"negligence", "duty of care", "damages", "car accident", "injuries", "plaintiff seeks"},
+    "Family Law": {"custodial", "child support", "custody", "divorce", "parental", "primary physical custody"},
+    "Personal Injury": {"negligence", "duty of care", "damages", "car accident", "injuries", "plaintiff seeks", "injury"},
 }
 
 def adjust_category(legal_text: str, category: str) -> str:
@@ -115,6 +115,21 @@ def adjust_category(legal_text: str, category: str) -> str:
                 continue
             if any(t in lowered for t in terms):
                 return cat
+    if category == "Wills, Trusts, and Estates":
+        has_agreement = "agreement" in lowered
+        strong_estate = any(w in lowered for w in ("bequeath", "codicil", "last will", "upon my death", "trustee", "testament"))
+        if has_agreement and not strong_estate and "trust" not in lowered:
+            return "Contract"
+        real_estate_terms = _CATEGORY_TERMS.get("Real Estate", set())
+        if not strong_estate and sum(1 for t in real_estate_terms if t in lowered) >= 2:
+            return "Real Estate"
+    if category == "Criminal Procedure":
+        injury_terms = _CATEGORY_TERMS.get("Personal Injury", set())
+        pi_hits = sum(1 for t in injury_terms if t in lowered)
+        criminal_terms = {t for t in _CATEGORY_TERMS.get("Criminal Procedure", set()) if t != "defendant"}
+        has_strong_criminal = any(t in lowered for t in criminal_terms)
+        if pi_hits >= 1 and not has_strong_criminal:
+            return "Personal Injury"
     return category
 
 def _is_likely_legal(text: str) -> bool:

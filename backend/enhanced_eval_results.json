@@ -1,10 +1,10 @@
 {
   "summary": {
     "total_samples": 23,
-    "category_correct": 22,
-    "accuracy": 0.9565217391304348,
-    "average_quality": 4.7,
-    "timestamp": 1754887355.5265222,
+    "category_correct": 20,
+    "accuracy": 0.8695652173913043,
+    "average_quality": 4.695652173913044,
+    "timestamp": 1754890546.25041,
     "model": "gpt-4",
     "skip_quality": false
   },
@@ -14,8 +14,8 @@
       "expected_category": "Wills, Trusts, and Estates",
       "predicted_category": "Wills, Trusts, and Estates",
       "category_correct": true,
-      "translation": "I bequeath all my personal property to my children, to be divided equally among them.",
-      "quality_score": 5
+      "translation": "I give all my personal property to my children, shared equally among them.",
+      "quality_score": 4
     },
     {
       "input": "The party of the first part shall indemnify and hold harmless the party of the second part.",
@@ -30,8 +30,8 @@
       "expected_category": "Contract",
       "predicted_category": "Contract",
       "category_correct": true,
-      "translation": "Deadlines matter. You must complete everything required by this agreement on time, and delays can count as a breach of the contract.",
-      "quality_score": 4
+      "translation": "Time is of the essence in the performance of all obligations under this Agreement.",
+      "quality_score": 5
     },
     {
       "input": "This Agreement shall be binding upon the heirs, successors, and assigns of the parties.",
@@ -54,22 +54,22 @@
       "expected_category": "Criminal Procedure",
       "predicted_category": "Criminal Procedure",
       "category_correct": true,
-      "translation": "A person accused of a crime does not have to answer police questions, and they can have a lawyer with them while being questioned.",
-      "quality_score": 4
+      "translation": "The defendant has the right to remain silent and to have an attorney present during questioning.",
+      "quality_score": 5
     },
     {
       "input": "Probable cause must exist before a search warrant may be issued.",
       "expected_category": "Criminal Procedure",
       "predicted_category": "Criminal Procedure",
       "category_correct": true,
-      "translation": "This means: Probable cause must exist before a search warrant may be issued.",
+      "translation": "Probable cause must exist before a search warrant may be issued.",
       "quality_score": 5
     },
     {
       "input": "The buyer shall obtain title insurance at their own expense and the seller shall deliver a warranty deed at closing.",
       "expected_category": "Real Estate",
-      "predicted_category": "Real Estate",
-      "category_correct": true,
+      "predicted_category": "Wills, Trusts, and Estates",
+      "category_correct": false,
       "translation": "The buyer will obtain title insurance at their own expense and the seller will deliver a warranty deed at closing.",
       "quality_score": 5
     },
@@ -78,23 +78,23 @@
       "expected_category": "Real Estate",
       "predicted_category": "Real Estate",
       "category_correct": true,
-      "translation": "The person transferring the property is giving the recipient all of their ownership rights in the property described above.",
+      "translation": "The grantor transfers all ownership rights in the described property to the grantee.",
       "quality_score": 4
     },
     {
       "input": "Subject property is sold 'as is' with all faults, latent and patent.",
       "expected_category": "Real Estate",
-      "predicted_category": "Other",
-      "category_correct": false,
-      "translation": "This means: Subject property is sold 'as is' with all faults, latent and patent.",
-      "quality_score": 4
+      "predicted_category": "Real Estate",
+      "category_correct": true,
+      "translation": "The property is sold in its current condition. The buyer accepts all defects, whether obvious or hidden, and the seller won\u2019t make repairs or provide warranties.",
+      "quality_score": 5
     },
     {
       "input": "The employee may not be terminated without cause during the initial probationary period.",
       "expected_category": "Employment Law",
       "predicted_category": "Employment Law",
       "category_correct": true,
-      "translation": "During the initial probation period, the employee can only be fired for a specific, valid reason; they cannot be dismissed without cause.",
+      "translation": "During the initial probationary period, the employer can only fire the employee for a valid reason.",
       "quality_score": 5
     },
     {
@@ -102,7 +102,7 @@
       "expected_category": "Employment Law",
       "predicted_category": "Employment Law",
       "category_correct": true,
-      "translation": "The employee promises not to share the company\u2019s confidential or proprietary information while employed or after leaving the job.",
+      "translation": "The employee will not share any confidential or proprietary information while employed or after leaving the company.",
       "quality_score": 5
     },
     {
@@ -110,7 +110,7 @@
       "expected_category": "Employment Law",
       "predicted_category": "Employment Law",
       "category_correct": true,
-      "translation": "The employer must give employees at least 30 days\u2019 written notice before any layoffs or workforce reductions happen.",
+      "translation": "Employer will provide thirty (30) days written notice before any reduction in force.",
       "quality_score": 5
     },
     {
@@ -134,23 +134,23 @@
       "expected_category": "Family Law",
       "predicted_category": "Family Law",
       "category_correct": true,
-      "translation": "This means: The parties agree to joint legal custody with primary physical custody to the mother.",
+      "translation": "Both parents will share major decision-making for the child, and the child will live mostly with the mother.",
       "quality_score": 5
     },
     {
       "input": "The plaintiff seeks damages for injuries sustained in a car accident caused by the defendant's negligence.",
       "expected_category": "Personal Injury",
-      "predicted_category": "Personal Injury",
-      "category_correct": true,
-      "translation": "This means: The plaintiff seeks damages for injuries sustained in a car accident caused by the defendant's negligence.",
+      "predicted_category": "Criminal Procedure",
+      "category_correct": false,
+      "translation": "The plaintiff seeks damages for injuries sustained in a car accident caused by the defendant's negligence.",
       "quality_score": 5
     },
     {
       "input": "Defendant breached the duty of care owed to plaintiff, resulting in compensable damages.",
       "expected_category": "Personal Injury",
-      "predicted_category": "Personal Injury",
-      "category_correct": true,
-      "translation": "The defendant didn\u2019t act with reasonable care toward the plaintiff, and that failure caused harm for which the plaintiff can get money damages.",
+      "predicted_category": "Criminal Procedure",
+      "category_correct": false,
+      "translation": "Defendant breached the duty of care owed to plaintiff, resulting in compensable damages.",
       "quality_score": 5
     },
     {
@@ -158,7 +158,7 @@
       "expected_category": "Wills, Trusts, and Estates",
       "predicted_category": "Wills, Trusts, and Estates",
       "category_correct": true,
-      "translation": "When I die, the trustee must give whatever is left in the trust to my grandchildren.",
+      "translation": "When I die, the trustee will give whatever is left in the trust to my grandchildren.",
       "quality_score": 4
     },
     {
@@ -166,32 +166,32 @@
       "expected_category": "Wills, Trusts, and Estates",
       "predicted_category": "Wills, Trusts, and Estates",
       "category_correct": true,
-      "translation": "This cancels any earlier wills or changes to them, and says that this document is my official final will.",
-      "quality_score": 4
+      "translation": "I revoke all prior wills and codicils made by me and declare this to be my last will and testament.",
+      "quality_score": 5
     },
     {
       "input": "I love movies and going to the cinema.",
-      "expected_category": "Other",
-      "predicted_category": "Other",
+      "expected_category": "Non-Legal",
+      "predicted_category": "Non-Legal",
       "category_correct": true,
-      "translation": "This means: I love movies and going to the cinema.",
-      "quality_score": null
+      "translation": "This isn\u2019t legal language; there\u2019s nothing to translate.",
+      "quality_score": 5
     },
     {
       "input": "The weather is really nice today.",
-      "expected_category": "Other",
-      "predicted_category": "Other",
+      "expected_category": "Non-Legal",
+      "predicted_category": "Non-Legal",
       "category_correct": true,
-      "translation": "The weather is really nice today.",
-      "quality_score": null
+      "translation": "This isn't legal language; there's nothing to translate.",
+      "quality_score": 5
     },
     {
       "input": "Can you help me with my homework?",
-      "expected_category": "Other",
-      "predicted_category": "Other",
+      "expected_category": "Non-Legal",
+      "predicted_category": "Non-Legal",
       "category_correct": true,
-      "translation": "Can you help me with my homework?",
-      "quality_score": null
+      "translation": "This isn\u2019t legal language; please provide the legal text you want simplified.",
+      "quality_score": 1
     }
   ]
 }
